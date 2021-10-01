@@ -1086,12 +1086,14 @@ void VQE::write_circuit(int n_var)
                 }
                 else
                 {
+                    strcpy(curr_matrix_name, curr_gate->get_name()); //keep current matrix name to multiply
+
                     if(find(gates_used.begin(),gates_used.end(),curr_gate) == gates_used.end())
                     {
-                        strcpy(curr_matrix_name, curr_gate->get_name()); //keep current matrix name to multiply
                         gates_used.push_back(curr_gate); // add gates after target have been removed
                         circuit << "reg [N-1:0] " << curr_matrix_name << " [0:" << pow(2, 2*(curr_matrix_dim)+1 )-1 << "];" << endl;
                     }
+
                 }
                 // Determine if Tensor_product or Vector product is necessary
                 for(int i=min_qb;i<max_qb;i++){
