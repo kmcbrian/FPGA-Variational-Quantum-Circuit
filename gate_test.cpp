@@ -10,24 +10,39 @@ using namespace std;
 
 void run_test();
 
+bool overlap_circuit = true;
+bool jz_diag_circuit = false;
+
 int main()
 {
     VQE* test_vqe;
-    test_vqe = new VQE(2);
 
     // angle = theta + phi/2
     double theta_min = 0;
     double theta_max = 2*PI;
     double phi_min = 0.0;
     double phi_max = 2*PI;
+    int num_angles = 3;
+
 
     /// Overlap circuit --------------------------------------------------------
-    test_vqe->H(0);
-    test_vqe->variational(1,"Ry",theta_min+phi_min/2.,theta_max+phi_max/2.,3);
-    test_vqe->control(0,1,"X");
-    test_vqe->variational(1,"Ry", -phi_min/2, -phi_max/2, 3);
-    test_vqe->control(0,1,"X");
-    test_vqe->H(0);
+    if(overlap_circuit)
+    {
+        test_vqe = new VQE(2);
+        test_vqe->H(0);
+        test_vqe->variational(1,"Ry",theta_min+phi_min/2.,theta_max+phi_max/2.,num_angles);
+        test_vqe->control(0,1,"X");
+        test_vqe->variational(1,"Ry", -phi_min/2, -phi_max/2, num_angles);
+        test_vqe->control(0,1,"X");
+        test_vqe->H(0);
+    }
+
+        /// Jz diag circuit --------------------------------------------------------
+    if(jz_diag_circuit)
+    {
+        test_vqe = new VQE(1);
+        test_vqe->variational(0,"Ry",theta_min,theta_max,3);
+    }
 
     test_vqe->write_verilog();
 

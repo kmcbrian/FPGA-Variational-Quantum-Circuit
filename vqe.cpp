@@ -22,7 +22,7 @@ VQE::VQE(const int n_qb)
 	num_qubits = n_qb;
 	head_ts_ptr = new Timeslice(n_qb);
 	curr_ts_ptr = head_ts_ptr;
-	N = 32; // size of data
+	//N = 32; // size of data
 
 
     multiplied_qbs = new int*[n_qb];
@@ -483,10 +483,13 @@ void VQE::variational(int qubit, const char gate[], double start, double stop, i
     /// check if valid gate for varying
     if(temp_name.compare("rx") && temp_name.compare("ry") && temp_name.compare("rz"))
         throw invalid_argument("Invalid Argument: Gate does not exist for as a Variational gate.\nValid options include Rx, Ry, Rz.");
-
-    if(start <= 0.0)
+    if(start == 0.0)
+        start = fabs(start);
+    else if(start < 0.0)
         start = fabs(6.2831853 + start); // 2*pi + angle
-    if(stop <= 0.0)
+    if(stop == 0.0)
+        stop = fabs(stop);
+    if(stop < 0.0)
         stop = fabs(6.2831853 + stop); // 2*pi + angle
 
     /// check if variational gate exists already
@@ -990,7 +993,7 @@ void VQE::write_circuit(int n_var)
 
     ofstream circuit;
     circuit.open(filename);
-    const int N = 32; // data size in Verilog
+    //const int N = 16; // data size in Verilog
 
     // add filename to file for easy deletion
     ofstream generate_file;
@@ -1238,7 +1241,7 @@ void VQE::write_circuit(int n_var)
     circuit << "\ninitial begin" << endl;
     init_state_to_file(N);
     for(int i=0;i<num_qubits;i++){
-        circuit << "   $readmemb(\"vector.dat\", psi_" << i << ");" << endl;
+        circuit << "   $readmemb(\"vector_qb.dat\", psi_" << i << ");" << endl;
     }
 
 
