@@ -19,10 +19,10 @@ int main()
 
     // angle = theta + phi/2
     double theta_min = 0;
-    double theta_max = 2*PI;
+    double theta_max = PI;
     double phi_min = 0.0;
     double phi_max = 2*PI;
-    int num_angles = 6;
+    int num_angles = 3;
 
 
     /// Overlap circuit --------------------------------------------------------
@@ -30,11 +30,11 @@ int main()
     {
         test_vqe = new VQE(2);
         test_vqe->H(0);
-        test_vqe->variational(1,"Ry",theta_min+phi_min/2.,theta_max+phi_max/2.,num_angles);
+        test_vqe->variational(1,"Ry",theta_min,theta_max,num_angles);
         test_vqe->control(0,1,"X");
-        test_vqe->variational(1,"Ry", -phi_min/2, -phi_max/2, num_angles);
-        test_vqe->control(0,1,"X");
-        test_vqe->H(0);
+        //test_vqe->variational(1,"Ry", -phi_min/2, -phi_max/2, num_angles);
+        //test_vqe->control(0,1,"X");
+        //test_vqe->H(0);
     }
 
         /// Jz diag circuit --------------------------------------------------------
