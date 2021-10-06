@@ -12,7 +12,7 @@ class VQE
 {
     private:
         int num_qubits;
-        const int N = 16; // number of bits for each number
+        const int N = 32; // number of bits for each number
         Timeslice* head_ts_ptr;
         Timeslice* curr_ts_ptr;
         void new_timeslice();

@@ -1406,23 +1406,36 @@ int VQE::write_vqe_solver()
 void VQE::vqe_case_writer(vector<Gate*> variational_gates, ofstream& solver)
 {
     int vector_size = static_cast<int>(pow(2,num_qubits+1));
-    for(int i_angles=0;i_angles<this->variational_angles[0].size();i_angles++)
+    if(this->variational_angles.size())
     {
-        solver << "        " << 2*i_angles << ": begin" << endl;
-        for(int i_gate=0;i_gate<variational_gates.size();i_gate++)
+        for(int i_angles=0;i_angles<this->variational_angles[0].size();i_angles++)
         {
-            solver << "            " << variational_gates[i_gate]->get_name()[1] << i_gate << "[0:7] <= ";
-            solver << variational_gates[i_gate]->get_variational_gate(i_angles)->get_name() << "[0:7];" << endl;
+            solver << "        " << 2*i_angles << ": begin" << endl;
+            for(int i_gate=0;i_gate<variational_gates.size();i_gate++)
+            {
+                solver << "            " << variational_gates[i_gate]->get_name()[1] << i_gate << "[0:7] <= ";
+                solver << variational_gates[i_gate]->get_variational_gate(i_angles)->get_name() << "[0:7];" << endl;
+            }
+            solver << "        end" << endl;
+            solver << "        " << i_angles*2 +1 << ": begin" << endl;
+            solver << "            psi_f_reg[" << i_angles*vector_size << ":" << (i_angles+1)*vector_size - 1  ;
+            solver << "] <= psi_f_temp[0:" << vector_size-1 << "];" << endl;
+            solver << "        end" << endl << endl;
         }
-        solver << "        end" << endl;
-        solver << "        " << i_angles*2 +1 << ": begin" << endl;
-        solver << "            psi_f_reg[" << i_angles*vector_size << ":" << (i_angles+1)*vector_size - 1  ;
-        solver << "] <= psi_f_temp[0:" << vector_size-1 << "];" << endl;
+        solver << "        " << this->variational_angles[0].size()*2 << ": begin" << endl;
+        solver << "            source_flag_reg <= 1'b1;" << endl;
         solver << "        end" << endl << endl;
     }
-    solver << "        " << this->variational_angles[0].size()*2 << ": begin" << endl;
-    solver << "            source_flag_reg <= 1'b1;" << endl;
-    solver << "        end" << endl << endl;
+    else
+    {
+        solver << "        0: begin" << endl;
+        solver << "            psi_f_reg[0:" << vector_size - 1  ;
+        solver << "] <= psi_f_temp[0:" << vector_size-1 << "];" << endl;
+        solver << "        end" << endl << endl;
+        solver << "        1: begin" << endl;
+        solver << "            source_flag_reg <= 1'b1;" << endl;
+        solver << "        end" << endl << endl;
+    }
 }
 
 
