@@ -17,22 +17,23 @@ int main()
 {
     VQE* test_vqe;
 
-    // angle = theta + phi/2
-    double theta_min = 0;
-    double theta_max = 2*PI;
-    double phi_min = 0.0;
-    double phi_max = 2*PI;
-    int num_angles = 6;
+    vector<vector<double>> variational_angles;
+    vector<double> gate0 = {0., PI/3., 2*PI/3};
+    vector<double> gate1 = {0., PI/3., 2*PI/3};
+    variational_angles.push_back(gate0);
+    variational_angles.push_back(gate1);
 
 
     /// Overlap circuit --------------------------------------------------------
     if(overlap_circuit)
     {
         test_vqe = new VQE(2);
+        test_vqe->set_variational_angles(variational_angles);
+        test_vqe->print_variational_angles();
         test_vqe->H(0);
-        test_vqe->variational(1,"Ry",theta_min+phi_min/2.,theta_max+phi_max/2.,num_angles);
+        test_vqe->variational(1,"Ry",0);
         test_vqe->control(0,1,"X");
-        test_vqe->variational(1,"Ry", -phi_min/2, -phi_max/2, num_angles);
+        test_vqe->variational(1,"Ry", 1);
         test_vqe->control(0,1,"X");
         test_vqe->H(0);
     }
@@ -41,7 +42,7 @@ int main()
     if(jz_diag_circuit)
     {
         test_vqe = new VQE(1);
-        test_vqe->variational(0,"Ry",theta_min,theta_max,3);
+        //test_vqe->variational(0,"Ry",theta_min,theta_max,3);
     }
 
     test_vqe->write_verilog();

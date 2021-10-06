@@ -487,35 +487,26 @@ void VQE::phase(int qubit, double angle, bool set_gate)
 
 /** Variational Gate
 */
-void VQE::variational(int qubit, const char gate[], double start, double stop, int num_angles)
+void VQE::variational(int qubit, const char gate[], int angle_index)
 {
     /// string cleansing
     string temp_name(gate);
     for(unsigned int i=0;i<temp_name.length();i++)
         temp_name[i] = tolower(temp_name[i]);
 
-    /// check if valid gate for varying
+    /// check if parameters are valid
     if(temp_name.compare("rx") && temp_name.compare("ry") && temp_name.compare("rz"))
         throw invalid_argument("Invalid Argument: Gate does not exist for as a Variational gate.\nValid options include Rx, Ry, Rz.");
-    if(abs(start) >= 2*PI || abs(stop) >= 2*PI) /// ~ 2pi
-        throw invalid_argument("Start or Stop exceeds the allowable ranges. Acceptable values in range [-2pi,2pi] radians ");
-
-    if(start == 0.0)
-        start = fabs(start);
-    else if(start < 0.0)
-        start = fabs(6.2831853 + start); // 2*pi + angle
-    if(stop == 0.0)
-        stop = fabs(stop);
-    else if(stop < 0.0)
-        stop = fabs(6.2831853 + stop); // 2*pi + angle
+    if(angle_index >= variational_angles.size() || angle_index < 0)
+        throw invalid_argument("Invalid Argument: angle_index out of bounds");
 
     /// check if variational gate exists already
-    string gate_name = temp_name + "V_"+ to_string(start).substr(0,1) + to_string(start).substr(2,2) + "_" + to_string(stop).substr(0,1) + to_string(stop).substr(2,2) + "_" + to_string(num_angles);
+    string gate_name = temp_name + "V_"+ to_string(angle_index);
     int gv_index = this->gate_vect.size();
     int gate_loc = gv_index;
     for(int i=0;i<gv_index;i++)
     { // search for matching gate: rz then angle of rotation
-        if(gate_name.compare(0,12,this->gate_vect[i]->get_name(),0,12) == 0)
+        if(gate_name.compare(0,5,this->gate_vect[i]->get_name(),0,5) == 0)
             gate_loc = i;
     }
 
@@ -527,32 +518,22 @@ void VQE::variational(int qubit, const char gate[], double start, double stop, i
     }
     else
     {
-        /// make all rotation gates/matrices
-        double angles[num_angles];
-        double lower = min(start,stop);
-        double higher= max(start,stop);
-        double step_size = (higher - lower)/static_cast<double>(num_angles);
-        for(int i=0;i<num_angles;i++)
-        {
-            angles[i] = lower + i*step_size;
-            cout << angles[i] << "  ";
-        }
+        int num_angles = variational_angles[angle_index].size();
         if(!temp_name.compare("rx"))
         {
             for(int i=0;i<num_angles;i++)
-                this->Rx(qubit, angles[i], false);
+                this->Rx(qubit, this->variational_angles[angle_index][i], false);
         }
         else if(!temp_name.compare("ry"))
         {
             for(int i=0;i<num_angles;i++)
-                this->Ry(qubit, angles[i], false);
+                this->Ry(qubit, this->variational_angles[angle_index][i], false);
         }
         else
         {
             for(int i=0;i<num_angles;i++)
-                this->Rz(qubit, angles[i], false);
+                this->Rz(qubit, this->variational_angles[angle_index][i], false);
         }
-        cout << "\ngate vector size:" << this->gate_vect.size() << endl;
 
 
         /// create variational gate in gate_vect
@@ -569,13 +550,13 @@ void VQE::variational(int qubit, const char gate[], double start, double stop, i
         string loop_name;
         for(int i_angles=0;i_angles<num_angles;i_angles++)
         {
-            loop_name.assign(temp_name + "_" + to_string(angles[i_angles]).substr(0,1) + "_" + to_string(angles[i_angles]).substr(2,6));
+            loop_name.assign(temp_name + "_" + to_string(this->variational_angles[angle_index][i_angles]).substr(0,1) + "_" + to_string(this->variational_angles[angle_index][i_angles]).substr(2,6));
             for(int i=0;i<gv_index;i++)
             { // search for matching gate: rz then angle of rotation
-                if(loop_name.compare(0,10,this->gate_vect[i]->get_name(),0,10) == 0 && angles[i_angles] == this->gate_vect[i]->get_angle())
+                if(loop_name.compare(0,10,this->gate_vect[i]->get_name(),0,10) == 0 && this->variational_angles[angle_index][i_angles] == this->gate_vect[i]->get_angle())
                 {
                         this->gate_vect[gv_index]->set_variational_gate(this->gate_vect[i]);
-                        cout << i << "  "<< angles[i_angles] << "  " << this->gate_vect[i]->get_angle() << "\n";
+                        cout << i << "  "<< this->variational_angles[angle_index][i_angles] << "  " << this->gate_vect[i]->get_angle() << "\n";
                 }
             }
             //cout << "  " << this->gate_vect[gv_index]->get_variational_gate(i_angles)->get_name();
@@ -585,6 +566,23 @@ void VQE::variational(int qubit, const char gate[], double start, double stop, i
         /// assign timeslice pointer to variational gate
         this->curr_ts_ptr->set_gate(qubit, gate_vect[gv_index]);
         this->new_timeslice();
+    }
+}
+
+
+void VQE::set_variational_angles(vector<vector<double>> _variational_angles)
+{
+    this->variational_angles = _variational_angles;
+}
+
+void VQE::print_variational_angles()
+{
+    cout << endl << "Angles:" << endl;
+    for(int i=0;i<variational_angles.size();i++)
+    {
+        for(int j=0;j<variational_angles[i].size();j++)
+            cout << variational_angles[i][j] << " ";
+        cout << endl;
     }
 }
 
