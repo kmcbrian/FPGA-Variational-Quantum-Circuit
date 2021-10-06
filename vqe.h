@@ -42,8 +42,7 @@ class VQE
         int write_vqe_solver();  //returns number of variational gates
         vector<vector<double>> variational_angles; // need setter and getter
 
-        void recursive_vqe_writer(int i_var, int n_var, vector<Gate*>, int[], int[],int[],ofstream& solver);
-        int get_case_number(int, int index[], int num_gates[]);
+        void vqe_case_writer(vector<Gate*>,ofstream& solver);
 
 
     public:

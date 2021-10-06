@@ -33,7 +33,7 @@ int main()
         test_vqe->H(0);
         test_vqe->variational(1,"Ry",0);
         test_vqe->control(0,1,"X");
-        test_vqe->variational(1,"Ry", 1);
+        test_vqe->variational(1,"Ry",1);
         test_vqe->control(0,1,"X");
         test_vqe->H(0);
     }

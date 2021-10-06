@@ -572,6 +572,11 @@ void VQE::variational(int qubit, const char gate[], int angle_index)
 
 void VQE::set_variational_angles(vector<vector<double>> _variational_angles)
 {
+    for(int i=0;i<_variational_angles.size()-1;i++)
+    {
+        if(_variational_angles[i].size() != _variational_angles[i+1].size())
+            throw invalid_argument("Invalid Argument: All gates must have same number of angles.");
+    }
     this->variational_angles = _variational_angles;
 }
 
@@ -1385,27 +1390,8 @@ int VQE::write_vqe_solver()
     solver << "begin" << endl;
     solver << "    case(i_ang)" << endl;
 
-    /// recursion ---------------------------
-    int index[variational_gates.size()];
-    int last_index[variational_gates.size()];
-    int case_index[variational_gates.size()]; // used to index case statement
-    // holds number of gates per cycle of corresponding gate
-    for(int i_v=0;i_v<variational_gates.size();i_v++)
-    {
-        index[i_v] = 0;
-        last_index[i_v] = 10; // ensure last_index[i] != index[i]
-        case_index[i_v] = 1;
-    }
-    //cout << "case index\n";
-    for(int i=0; i<variational_gates.size();i++)
-    {
-        for(int j=i+1;j<variational_gates.size();j++)
-            case_index[i] *= variational_gates[j]->get_num_gates();
-        //cout << case_index[i] << endl;
-    }
-
-    int i_var = 0;
-    recursive_vqe_writer(i_var, variational_gates.size(), variational_gates, index, last_index, case_index, solver);
+    /// call vqe_case_writer
+    vqe_case_writer(variational_gates, solver);
 
     solver << "    endcase" << endl;
     solver << "    i_ang = i_ang + 1;" << endl;
@@ -1417,55 +1403,27 @@ int VQE::write_vqe_solver()
 }
 
 
-void VQE::recursive_vqe_writer(int i_var, int n_var, vector<Gate*> variational_gates, int index[], int last_index[], int case_index[],ofstream& solver)
+void VQE::vqe_case_writer(vector<Gate*> variational_gates, ofstream& solver)
 {
-    int case_number;
     int vector_size = static_cast<int>(pow(2,num_qubits+1));
-    if(i_var < n_var)
+    for(int i_angles=0;i_angles<this->variational_angles[0].size();i_angles++)
     {
-        for(int i=0;i<variational_gates[i_var]->get_num_gates();i++)
+        solver << "        " << 2*i_angles << ": begin" << endl;
+        for(int i_gate=0;i_gate<variational_gates.size();i_gate++)
         {
-            index[i_var] = i;
-            recursive_vqe_writer(i_var+1,n_var,variational_gates,index,last_index,case_index,solver);
-
-            /// Only print on inner-most nested loop
-            if(i_var == n_var-1)
-            {
-                case_number = get_case_number(n_var,index,case_index);
-                solver << "        " << case_number*2 << ": begin" << endl;
-                for(int j=0;j<n_var;j++)
-                {
-                    if(index[j] != last_index[j])
-                    {
-                        solver << "            " << variational_gates[j]->get_name()[1] << j << "[0:7] <= ";
-                        solver << variational_gates[j]->get_variational_gate(index[j])->get_name() << "[0:7];" << endl;
-                        last_index[j] = index[j];
-                    }
-                }
-                solver << "        end" << endl;
-                solver << "        " << case_number*2 +1 << ": begin" << endl;
-                solver << "            psi_f_reg[" << case_number*vector_size << ":" << (case_number+1)*vector_size - 1  ;
-                solver << "] <= psi_f_temp[0:" << vector_size-1 << "];" << endl;
-                solver << "        end" << endl << endl;
-            }
+            solver << "            " << variational_gates[i_gate]->get_name()[1] << i_gate << "[0:7] <= ";
+            solver << variational_gates[i_gate]->get_variational_gate(i_angles)->get_name() << "[0:7];" << endl;
         }
-        // needs to be innermost nested loop b/c arrays were passed by ref.
-        if(index[0] == case_index[0]-1 && i_var == n_var-1)
-        {
-            solver << "        " << case_number*2 +2 << ": begin" << endl;
-            solver << "            source_flag_reg <= 1'b1;" << endl;
-            solver << "        end" << endl << endl;
-        }
+        solver << "        end" << endl;
+        solver << "        " << i_angles*2 +1 << ": begin" << endl;
+        solver << "            psi_f_reg[" << i_angles*vector_size << ":" << (i_angles+1)*vector_size - 1  ;
+        solver << "] <= psi_f_temp[0:" << vector_size-1 << "];" << endl;
+        solver << "        end" << endl << endl;
     }
-    else return;
+    solver << "        " << this->variational_angles[0].size()*2 << ": begin" << endl;
+    solver << "            source_flag_reg <= 1'b1;" << endl;
+    solver << "        end" << endl << endl;
 }
 
-int VQE::get_case_number(int N, int index[], int num_gates[])
-{
-    int sum=0;
-    for(int i=0;i<N;i++)
-        sum += index[i] * num_gates[i];
-    return sum;
-}
 
 #endif // VQE_CPP
