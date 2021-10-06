@@ -22,7 +22,7 @@ int main()
     double theta_max = 2*PI;
     double phi_min = 0.0;
     double phi_max = 2*PI;
-    int num_angles = 3;
+    int num_angles = 6;
 
 
     /// Overlap circuit --------------------------------------------------------

@@ -10,6 +10,8 @@
 #include "vqe.h"
 #include "binary.h"
 
+#define PI 3.141592653589793
+
 using namespace std;
 
 /** Constructor
@@ -271,6 +273,11 @@ void VQE::H(int qubit)
 */
 void VQE::Rz(int qubit, double angle, bool set_gate)
 {
+    if(angle < 0.0)
+        angle = 6.2831853 + angle; // 2*pi + angle
+    else if(angle == 0.0)
+        angle = fabs(angle);
+
     string Rz_name = "rz_" + to_string(angle).substr(0,1) + "_" + to_string(angle).substr(2,6);
     int gv_index = gate_vect.size();
     int gate_loc = gv_index; // init to invalid index
@@ -308,10 +315,10 @@ void VQE::Rz(int qubit, double angle, bool set_gate)
         temp.resize(N, vector<double>(2));
         for(int j=0;j<N;j++){temp[j][0]=0; temp[j][1]=0;}
 
-        temp[0][0] = cos(angle/2.);
-        temp[0][1] = -sin(angle/2.);
-        temp[N-1][0] = cos(angle/2.);
-        temp[N-1][1] = sin(angle/2.);
+        temp[0][0] = cos(angle);
+        temp[0][1] = -sin(angle);
+        temp[N-1][0] = cos(angle);
+        temp[N-1][1] = sin(angle);
 
         matrix_vect.push_back(temp);
     }
@@ -320,6 +327,11 @@ void VQE::Rz(int qubit, double angle, bool set_gate)
 
 void VQE::Rx(int qubit, double angle, bool set_gate)
 {
+    if(angle < 0.0)
+        angle = 6.2831853 + angle; // 2*pi + angle
+    else if(angle == 0.0)
+        angle = fabs(angle);
+
     string Rx_name = "rx_"+ to_string(angle).substr(0,1) + "_" + to_string(angle).substr(2,6);
     int gv_index = gate_vect.size();
     int gate_loc = gv_index; // init to invalid index
@@ -357,10 +369,10 @@ void VQE::Rx(int qubit, double angle, bool set_gate)
         temp.resize(N, vector<double>(2));
         for(int j=0;j<N;j++){temp[j][0]=0; temp[j][1]=0;}
 
-        temp[0][0] = cos(angle/2.);
-        temp[1][1] = -sin(angle/2.);
-        temp[2][1] = -sin(angle/2.);
-        temp[3][0] = cos(angle/2.);
+        temp[0][0] = cos(angle);
+        temp[1][1] = -sin(angle);
+        temp[2][1] = -sin(angle);
+        temp[3][0] = cos(angle);
         matrix_vect.push_back(temp);
     }
 
@@ -371,6 +383,8 @@ void VQE::Ry(int qubit, double angle, bool set_gate)
 {
     if(angle < 0.0)
         angle = 6.2831853 + angle; // 2*pi + angle
+    else if(angle == 0.0)
+        angle = fabs(angle);
 
     string Ry_name = "ry_"+ to_string(angle).substr(0,1) + "_" + to_string(angle).substr(2,6);
     int gv_index = gate_vect.size();
@@ -411,10 +425,10 @@ void VQE::Ry(int qubit, double angle, bool set_gate)
         temp.resize(N, vector<double>(2));
         for(int j=0;j<N;j++){temp[j][0]=0; temp[j][1]=0;}
 
-        temp[0][0] = cos(angle/2.);
-        temp[1][0] = -sin(angle/2.);
-        temp[2][0] = sin(angle/2.);
-        temp[3][0] = cos(angle/2.);
+        temp[0][0] = cos(angle);
+        temp[1][0] = -sin(angle);
+        temp[2][0] = sin(angle);
+        temp[3][0] = cos(angle);
         matrix_vect.push_back(temp);
     }
 
@@ -483,13 +497,16 @@ void VQE::variational(int qubit, const char gate[], double start, double stop, i
     /// check if valid gate for varying
     if(temp_name.compare("rx") && temp_name.compare("ry") && temp_name.compare("rz"))
         throw invalid_argument("Invalid Argument: Gate does not exist for as a Variational gate.\nValid options include Rx, Ry, Rz.");
+    if(abs(start) >= 2*PI || abs(stop) >= 2*PI) /// ~ 2pi
+        throw invalid_argument("Start or Stop exceeds the allowable ranges. Acceptable values in range [-2pi,2pi] radians ");
+
     if(start == 0.0)
         start = fabs(start);
     else if(start < 0.0)
         start = fabs(6.2831853 + start); // 2*pi + angle
     if(stop == 0.0)
         stop = fabs(stop);
-    if(stop < 0.0)
+    else if(stop < 0.0)
         stop = fabs(6.2831853 + stop); // 2*pi + angle
 
     /// check if variational gate exists already
