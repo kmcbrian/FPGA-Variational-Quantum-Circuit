@@ -199,7 +199,7 @@ void VQE::init_state_to_file(int N){
     ofstream vector_file;
     vector_file.open(filename);
 
-    int num_reals = static_cast<int>(pow(2,this->num_qubits));
+    int num_reals = 4;
     int binary[num_reals][N];
     // initialize binary array to 0
     binary[0][0] = 0;
@@ -487,35 +487,26 @@ void VQE::phase(int qubit, double angle, bool set_gate)
 
 /** Variational Gate
 */
-void VQE::variational(int qubit, const char gate[], double start, double stop, int num_angles)
+void VQE::variational(int qubit, const char gate[], int angle_index)
 {
     /// string cleansing
     string temp_name(gate);
     for(unsigned int i=0;i<temp_name.length();i++)
         temp_name[i] = tolower(temp_name[i]);
 
-    /// check if valid gate for varying
+    /// check if parameters are valid
     if(temp_name.compare("rx") && temp_name.compare("ry") && temp_name.compare("rz"))
         throw invalid_argument("Invalid Argument: Gate does not exist for as a Variational gate.\nValid options include Rx, Ry, Rz.");
-    if(abs(start) >= 2*PI || abs(stop) >= 2*PI) /// ~ 2pi
-        throw invalid_argument("Start or Stop exceeds the allowable ranges. Acceptable values in range [-2pi,2pi] radians ");
-
-    if(start == 0.0)
-        start = fabs(start);
-    else if(start < 0.0)
-        start = fabs(6.2831853 + start); // 2*pi + angle
-    if(stop == 0.0)
-        stop = fabs(stop);
-    else if(stop < 0.0)
-        stop = fabs(6.2831853 + stop); // 2*pi + angle
+    if(angle_index >= variational_angles.size() || angle_index < 0)
+        throw invalid_argument("Invalid Argument: angle_index out of bounds");
 
     /// check if variational gate exists already
-    string gate_name = temp_name + "V_"+ to_string(start).substr(0,1) + to_string(start).substr(2,2) + "_" + to_string(stop).substr(0,1) + to_string(stop).substr(2,2) + "_" + to_string(num_angles);
+    string gate_name = temp_name + "V_"+ to_string(angle_index);
     int gv_index = this->gate_vect.size();
     int gate_loc = gv_index;
     for(int i=0;i<gv_index;i++)
     { // search for matching gate: rz then angle of rotation
-        if(gate_name.compare(0,12,this->gate_vect[i]->get_name(),0,12) == 0)
+        if(gate_name.compare(0,5,this->gate_vect[i]->get_name(),0,5) == 0)
             gate_loc = i;
     }
 
@@ -527,32 +518,22 @@ void VQE::variational(int qubit, const char gate[], double start, double stop, i
     }
     else
     {
-        /// make all rotation gates/matrices
-        double angles[num_angles];
-        double lower = min(start,stop);
-        double higher= max(start,stop);
-        double step_size = (higher - lower)/static_cast<double>(num_angles);
-        for(int i=0;i<num_angles;i++)
-        {
-            angles[i] = lower + i*step_size;
-            cout << angles[i] << "  ";
-        }
+        int num_angles = variational_angles[angle_index].size();
         if(!temp_name.compare("rx"))
         {
             for(int i=0;i<num_angles;i++)
-                this->Rx(qubit, angles[i], false);
+                this->Rx(qubit, this->variational_angles[angle_index][i], false);
         }
         else if(!temp_name.compare("ry"))
         {
             for(int i=0;i<num_angles;i++)
-                this->Ry(qubit, angles[i], false);
+                this->Ry(qubit, this->variational_angles[angle_index][i], false);
         }
         else
         {
             for(int i=0;i<num_angles;i++)
-                this->Rz(qubit, angles[i], false);
+                this->Rz(qubit, this->variational_angles[angle_index][i], false);
         }
-        cout << "\ngate vector size:" << this->gate_vect.size() << endl;
 
 
         /// create variational gate in gate_vect
@@ -569,13 +550,13 @@ void VQE::variational(int qubit, const char gate[], double start, double stop, i
         string loop_name;
         for(int i_angles=0;i_angles<num_angles;i_angles++)
         {
-            loop_name.assign(temp_name + "_" + to_string(angles[i_angles]).substr(0,1) + "_" + to_string(angles[i_angles]).substr(2,6));
+            loop_name.assign(temp_name + "_" + to_string(this->variational_angles[angle_index][i_angles]).substr(0,1) + "_" + to_string(this->variational_angles[angle_index][i_angles]).substr(2,6));
             for(int i=0;i<gv_index;i++)
             { // search for matching gate: rz then angle of rotation
-                if(loop_name.compare(0,10,this->gate_vect[i]->get_name(),0,10) == 0 && angles[i_angles] == this->gate_vect[i]->get_angle())
+                if(loop_name.compare(0,10,this->gate_vect[i]->get_name(),0,10) == 0 && this->variational_angles[angle_index][i_angles] == this->gate_vect[i]->get_angle())
                 {
                         this->gate_vect[gv_index]->set_variational_gate(this->gate_vect[i]);
-                        cout << i << "  "<< angles[i_angles] << "  " << this->gate_vect[i]->get_angle() << "\n";
+                        cout << i << "  "<< this->variational_angles[angle_index][i_angles] << "  " << this->gate_vect[i]->get_angle() << "\n";
                 }
             }
             //cout << "  " << this->gate_vect[gv_index]->get_variational_gate(i_angles)->get_name();
@@ -585,6 +566,28 @@ void VQE::variational(int qubit, const char gate[], double start, double stop, i
         /// assign timeslice pointer to variational gate
         this->curr_ts_ptr->set_gate(qubit, gate_vect[gv_index]);
         this->new_timeslice();
+    }
+}
+
+
+void VQE::set_variational_angles(vector<vector<double>> _variational_angles)
+{
+    for(int i=0;i<_variational_angles.size()-1;i++)
+    {
+        if(_variational_angles[i].size() != _variational_angles[i+1].size())
+            throw invalid_argument("Invalid Argument: All gates must have same number of angles.");
+    }
+    this->variational_angles = _variational_angles;
+}
+
+void VQE::print_variational_angles()
+{
+    cout << endl << "Angles:" << endl;
+    for(int i=0;i<variational_angles.size();i++)
+    {
+        for(int j=0;j<variational_angles[i].size();j++)
+            cout << variational_angles[i][j] << " ";
+        cout << endl;
     }
 }
 
@@ -1256,7 +1259,7 @@ void VQE::write_circuit(int n_var)
         curr_ts_ptr = curr_ts_ptr->get_next_timeslice();
     }
     circuit << "\ninitial begin" << endl;
-    init_state_to_file(N);
+    this->init_state_to_file(this->N);
     for(int i=0;i<num_qubits;i++){
         circuit << "   $readmemb(\"vector_qb.dat\", psi_" << i << ");" << endl;
     }
@@ -1387,27 +1390,8 @@ int VQE::write_vqe_solver()
     solver << "begin" << endl;
     solver << "    case(i_ang)" << endl;
 
-    /// recursion ---------------------------
-    int index[variational_gates.size()];
-    int last_index[variational_gates.size()];
-    int case_index[variational_gates.size()]; // used to index case statement
-    // holds number of gates per cycle of corresponding gate
-    for(int i_v=0;i_v<variational_gates.size();i_v++)
-    {
-        index[i_v] = 0;
-        last_index[i_v] = 10; // ensure last_index[i] != index[i]
-        case_index[i_v] = 1;
-    }
-    //cout << "case index\n";
-    for(int i=0; i<variational_gates.size();i++)
-    {
-        for(int j=i+1;j<variational_gates.size();j++)
-            case_index[i] *= variational_gates[j]->get_num_gates();
-        //cout << case_index[i] << endl;
-    }
-
-    int i_var = 0;
-    recursive_vqe_writer(i_var, variational_gates.size(), variational_gates, index, last_index, case_index, solver);
+    /// call vqe_case_writer
+    vqe_case_writer(variational_gates, solver);
 
     solver << "    endcase" << endl;
     solver << "    i_ang = i_ang + 1;" << endl;
@@ -1419,55 +1403,40 @@ int VQE::write_vqe_solver()
 }
 
 
-void VQE::recursive_vqe_writer(int i_var, int n_var, vector<Gate*> variational_gates, int index[], int last_index[], int case_index[],ofstream& solver)
+void VQE::vqe_case_writer(vector<Gate*> variational_gates, ofstream& solver)
 {
-    int case_number;
     int vector_size = static_cast<int>(pow(2,num_qubits+1));
-    if(i_var < n_var)
+    if(this->variational_angles.size())
     {
-        for(int i=0;i<variational_gates[i_var]->get_num_gates();i++)
+        for(int i_angles=0;i_angles<this->variational_angles[0].size();i_angles++)
         {
-            index[i_var] = i;
-            recursive_vqe_writer(i_var+1,n_var,variational_gates,index,last_index,case_index,solver);
-
-            /// Only print on inner-most nested loop
-            if(i_var == n_var-1)
+            solver << "        " << 2*i_angles << ": begin" << endl;
+            for(int i_gate=0;i_gate<variational_gates.size();i_gate++)
             {
-                case_number = get_case_number(n_var,index,case_index);
-                solver << "        " << case_number*2 << ": begin" << endl;
-                for(int j=0;j<n_var;j++)
-                {
-                    if(index[j] != last_index[j])
-                    {
-                        solver << "            " << variational_gates[j]->get_name()[1] << j << "[0:7] <= ";
-                        solver << variational_gates[j]->get_variational_gate(index[j])->get_name() << "[0:7];" << endl;
-                        last_index[j] = index[j];
-                    }
-                }
-                solver << "        end" << endl;
-                solver << "        " << case_number*2 +1 << ": begin" << endl;
-                solver << "            psi_f_reg[" << case_number*vector_size << ":" << (case_number+1)*vector_size - 1  ;
-                solver << "] <= psi_f_temp[0:" << vector_size-1 << "];" << endl;
-                solver << "        end" << endl << endl;
+                solver << "            " << variational_gates[i_gate]->get_name()[1] << i_gate << "[0:7] <= ";
+                solver << variational_gates[i_gate]->get_variational_gate(i_angles)->get_name() << "[0:7];" << endl;
             }
-        }
-        // needs to be innermost nested loop b/c arrays were passed by ref.
-        if(index[0] == case_index[0]-1 && i_var == n_var-1)
-        {
-            solver << "        " << case_number*2 +2 << ": begin" << endl;
-            solver << "            source_flag_reg <= 1'b1;" << endl;
+            solver << "        end" << endl;
+            solver << "        " << i_angles*2 +1 << ": begin" << endl;
+            solver << "            psi_f_reg[" << i_angles*vector_size << ":" << (i_angles+1)*vector_size - 1  ;
+            solver << "] <= psi_f_temp[0:" << vector_size-1 << "];" << endl;
             solver << "        end" << endl << endl;
         }
+        solver << "        " << this->variational_angles[0].size()*2 << ": begin" << endl;
+        solver << "            source_flag_reg <= 1'b1;" << endl;
+        solver << "        end" << endl << endl;
     }
-    else return;
+    else
+    {
+        solver << "        0: begin" << endl;
+        solver << "            psi_f_reg[0:" << vector_size - 1  ;
+        solver << "] <= psi_f_temp[0:" << vector_size-1 << "];" << endl;
+        solver << "        end" << endl << endl;
+        solver << "        1: begin" << endl;
+        solver << "            source_flag_reg <= 1'b1;" << endl;
+        solver << "        end" << endl << endl;
+    }
 }
 
-int VQE::get_case_number(int N, int index[], int num_gates[])
-{
-    int sum=0;
-    for(int i=0;i<N;i++)
-        sum += index[i] * num_gates[i];
-    return sum;
-}
 
 #endif // VQE_CPP

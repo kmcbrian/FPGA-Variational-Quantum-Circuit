@@ -40,8 +40,9 @@ class VQE
 
         void write_circuit(int); //input number of var. gates
         int write_vqe_solver();  //returns number of variational gates
-        void recursive_vqe_writer(int i_var, int n_var, vector<Gate*>, int[], int[],int[],ofstream& solver);
-        int get_case_number(int, int index[], int num_gates[]);
+        vector<vector<double>> variational_angles; // need setter and getter
+
+        void vqe_case_writer(vector<Gate*>,ofstream& solver);
 
 
     public:
@@ -66,7 +67,9 @@ class VQE
         void Ry(int qubit, double angle, bool set_gate=true);
         void phase(int qubit, double angle, bool set_gate=true);
 
-        void variational(int qubit, const char[], double start, double stop, int num_angles); // [start, stop)
+        void variational(int qubit, const char[], int angle_index);
+        void set_variational_angles(vector<vector<double>>);
+        void print_variational_angles();
 
         void control(int control, int target, const char[]);
         void temp_control(int control, int target, const char[], double angle=0);

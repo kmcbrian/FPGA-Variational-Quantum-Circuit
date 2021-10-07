@@ -1,5 +1,5 @@
 module complex_mult #(
-		parameter N = 16 // data size
+		parameter N = 24 // data size
 		)
 		(
 		// inputs: (a+ib)(c+id)
@@ -19,7 +19,7 @@ module complex_mult #(
 	wire [N-1:0] ad;
 	
 	wire ovr_ac;
-	wire ovr_bd;
+		wire ovr_bd;
 	wire ovr_bc;
 	wire ovr_ad;
 	wire ovr_re; // need overflow flag
