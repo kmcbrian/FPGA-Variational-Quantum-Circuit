@@ -199,7 +199,7 @@ void VQE::init_state_to_file(int N){
     ofstream vector_file;
     vector_file.open(filename);
 
-    int num_reals = static_cast<int>(pow(2,this->num_qubits));
+    int num_reals = 4;
     int binary[num_reals][N];
     // initialize binary array to 0
     binary[0][0] = 0;
@@ -1259,7 +1259,7 @@ void VQE::write_circuit(int n_var)
         curr_ts_ptr = curr_ts_ptr->get_next_timeslice();
     }
     circuit << "\ninitial begin" << endl;
-    init_state_to_file(N);
+    this->init_state_to_file(this->N);
     for(int i=0;i<num_qubits;i++){
         circuit << "   $readmemb(\"vector_qb.dat\", psi_" << i << ");" << endl;
     }

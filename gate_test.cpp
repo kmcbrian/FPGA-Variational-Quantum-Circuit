@@ -28,14 +28,14 @@ int main()
     if(overlap_circuit)
     {
         test_vqe = new VQE(2);
-        //test_vqe->set_variational_angles(variational_angles);
-        //test_vqe->print_variational_angles();
-        test_vqe->X(0);
-        //test_vqe->variational(1,"Ry",0);
+        test_vqe->set_variational_angles(variational_angles);
+        test_vqe->print_variational_angles();
+        test_vqe->H(0);
+        test_vqe->variational(1,"Ry",0);
         test_vqe->control(0,1,"X");
-        //test_vqe->variational(1,"Ry",1);
-        //test_vqe->control(0,1,"X");
-        //test_vqe->H(0);
+        test_vqe->variational(1,"Ry",1);
+        test_vqe->control(0,1,"X");
+        test_vqe->H(0);
     }
 
         /// Jz diag circuit --------------------------------------------------------

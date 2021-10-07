@@ -44,8 +44,6 @@ void write_output(int psi_f_length, int N, int n_qb){
 	verilog << "input [N-1:0] psi_f [0:" << psi_f_length-1 << "]," << endl;
     verilog << "input wire i_clock,"    << endl;
     verilog << "input wire listener_flag," << endl;
-    //verilog << "output wire source_flag," << endl;
-    //verilog << "output wire LEDR,"   << endl;
 	verilog << "output wire[7:0] out,"  << endl;
     verilog << "output wire parity\n);" << endl << endl;
 
@@ -56,10 +54,6 @@ void write_output(int psi_f_length, int N, int n_qb){
 
 	verilog << "reg [7:0] out_reg; // for assigning numbers in always block" << endl;
 	verilog << "assign out[7:0] = out_reg[7:0];" << endl;
-
-	verilog << "\nreg source_flag_reg;" << endl;
-	verilog << "assign source_flag = source_flag_reg;" << endl;
-	verilog << "assign LEDR = source_flag_reg;" << endl;
 	verilog << "reg parity_reg;" << endl;
 	verilog << "assign parity = parity_reg;" << endl;
 
