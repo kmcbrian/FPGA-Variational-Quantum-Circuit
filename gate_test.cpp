@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cmath>
 
 #include "gate.h"
 #include "timeslice.h"
@@ -13,13 +14,36 @@ void run_test();
 bool overlap_circuit = true;
 bool jz_diag_circuit = false;
 
+
 int main()
 {
     VQE* test_vqe;
 
+    /// Filling angle array ----------------------
+    double angle_min = 0.0;
+    double angle_max = 2*PI;
+    int num_angles = 3;
+
+    double step = (angle_max - angle_min) / num_angles;
+    double theta[num_angles];
+    for(int i=0;i<num_angles;i++)
+    {
+        theta[i] = angle_min + i*step;
+    }
+    cout << endl;
+
+    /// Filling variational_angles ----------------
     vector<vector<double>> variational_angles;
-    vector<double> gate0 = {0., PI/3., 2*PI/3};
-    vector<double> gate1 = {0., PI/3., 2*PI/3};
+    vector<double> gate0(pow(num_angles,2));
+    vector<double> gate1(pow(num_angles,2));
+    for(int i=0;i<num_angles;i++)
+    {
+        for(int j=0;j<num_angles;j++)
+        {
+            gate0[i*num_angles +j] = (theta[i] + theta[j])/2.;
+            gate1[i*num_angles +j] = (theta[i] - theta[j])/2.;
+        }
+    }
     variational_angles.push_back(gate0);
     variational_angles.push_back(gate1);
 
@@ -36,6 +60,12 @@ int main()
         test_vqe->variational(1,"Ry",1);
         test_vqe->control(0,1,"X");
         test_vqe->H(0);
+
+
+        cout << "0 num gates: " << test_vqe->get_head_ptr()->get_next_timeslice()->get_gate(1)->get_num_gates() << endl;
+        cout << "1 num gates: " << test_vqe->get_head_ptr()->get_next_timeslice()->get_next_timeslice()->get_next_timeslice()->get_gate(1)->get_num_gates() << endl;
+
+
     }
 
         /// Jz diag circuit --------------------------------------------------------

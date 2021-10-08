@@ -4,9 +4,11 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <sstream> // for stringstream
 #include <cstring>
 #include <stdexcept>
 #include <math.h>
+#include <numeric> // for accumulate
 #include "vqe.h"
 #include "binary.h"
 
@@ -271,178 +273,45 @@ void VQE::H(int qubit)
 /** Variable Single Qubit gates
         -Rz, Rx, Ry, Phase
 */
-void VQE::Rz(int qubit, double angle, bool set_gate)
-{
-    if(angle < 0.0)
-        angle = 6.2831853 + angle; // 2*pi + angle
-    else if(angle == 0.0)
-        angle = fabs(angle);
-
-    string Rz_name = "rz_" + to_string(angle).substr(0,1) + "_" + to_string(angle).substr(2,6);
-    int gv_index = gate_vect.size();
-    int gate_loc = gv_index; // init to invalid index
-    for(int i=0;i<gv_index;i++)
-    { // search for matching gate: rz then angle of rotation
-        if(Rz_name.compare(0,10,gate_vect[i]->get_name(),0,10) == 0 && angle == gate_vect[i]->get_angle())
-            gate_loc = i;
-    }
-
-    if(gate_loc != gv_index)
-    {
-        if(set_gate)
-        {
-            curr_ts_ptr->set_gate(qubit, gate_vect[gate_loc]);
-            this->new_timeslice();
-        }
-    }
-    else
-    {
-        gate_vect.push_back(new Gate);
-        gate_vect[gv_index]->set_num_qubits(1);
-        gate_vect[gv_index]->set_matrix_index(matrix_vect.size());
-        gate_vect[gv_index]->set_name(Rz_name);
-        gate_vect[gv_index]->set_angle(angle);
-        gate_vect[gv_index]->set_is_variational(false);
-
-        if(set_gate)
-        {
-            curr_ts_ptr->set_gate(qubit, gate_vect[gv_index]);
-            this->new_timeslice();
-        }
-        //  Initialize gate matrix: temp
-        vector<vector<double>> temp;
-        int N = 4;
-        temp.resize(N, vector<double>(2));
-        for(int j=0;j<N;j++){temp[j][0]=0; temp[j][1]=0;}
-
-        temp[0][0] = cos(angle);
-        temp[0][1] = -sin(angle);
-        temp[N-1][0] = cos(angle);
-        temp[N-1][1] = sin(angle);
-
-        matrix_vect.push_back(temp);
-    }
-
-}
 
 void VQE::Rx(int qubit, double angle, bool set_gate)
 {
-    if(angle < 0.0)
-        angle = 6.2831853 + angle; // 2*pi + angle
-    else if(angle == 0.0)
-        angle = fabs(angle);
-
-    string Rx_name = "rx_"+ to_string(angle).substr(0,1) + "_" + to_string(angle).substr(2,6);
-    int gv_index = gate_vect.size();
-    int gate_loc = gv_index; // init to invalid index
-    for(int i=0;i<gv_index;i++)
-    { // search for matching gate: rz then angle of rotation
-        if(Rx_name.compare(0,10,gate_vect[i]->get_name(),0,10) == 0 && angle == gate_vect[i]->get_angle())
-            gate_loc = i;
-    }
-
-    if(gate_loc != gv_index)
-    {
-        if(set_gate)
-        {
-            curr_ts_ptr->set_gate(qubit, gate_vect[gate_loc]);
-            this->new_timeslice();
-        }
-    }
-    else
-    {
-        gate_vect.push_back(new Gate);
-        gate_vect[gv_index]->set_num_qubits(1);
-        gate_vect[gv_index]->set_matrix_index(matrix_vect.size());
-        gate_vect[gv_index]->set_name(Rx_name);
-        gate_vect[gv_index]->set_angle(angle);
-        gate_vect[gv_index]->set_is_variational(false);
-
-        if(set_gate)
-        {
-            curr_ts_ptr->set_gate(qubit, gate_vect[gv_index]);
-            this->new_timeslice();
-        }
-        //  Initialize gate matrix: temp
-        vector<vector<double>> temp;
-        int N = 4;
-        temp.resize(N, vector<double>(2));
-        for(int j=0;j<N;j++){temp[j][0]=0; temp[j][1]=0;}
-
-        temp[0][0] = cos(angle);
-        temp[1][1] = -sin(angle);
-        temp[2][1] = -sin(angle);
-        temp[3][0] = cos(angle);
-        matrix_vect.push_back(temp);
-    }
-
+    this->rotation("x", qubit, angle, set_gate);
 }
-
 
 void VQE::Ry(int qubit, double angle, bool set_gate)
 {
-    if(angle < 0.0)
-        angle = 6.2831853 + angle; // 2*pi + angle
-    else if(angle == 0.0)
-        angle = fabs(angle);
-
-    string Ry_name = "ry_"+ to_string(angle).substr(0,1) + "_" + to_string(angle).substr(2,6);
-    int gv_index = gate_vect.size();
-
-    int gate_loc = gv_index; // init to invalid index
-    for(int i=0;i<gv_index;i++)
-    { // search for matching gate: rz then angle of rotation
-        if(Ry_name.compare(0,10,gate_vect[i]->get_name(),0,10) == 0 && angle == gate_vect[i]->get_angle())
-            gate_loc = i;
-    }
-
-    if(gate_loc != gv_index)
-    {
-        if(set_gate)
-        {
-            curr_ts_ptr->set_gate(qubit, gate_vect[gate_loc]);
-            this->new_timeslice();
-        }
-    }
-    else
-    {
-        cout << " " << Ry_name << " " ;
-        gate_vect.push_back(new Gate);
-        gate_vect[gv_index]->set_num_qubits(1);
-        gate_vect[gv_index]->set_matrix_index(matrix_vect.size());
-        gate_vect[gv_index]->set_name(Ry_name);
-        gate_vect[gv_index]->set_angle(angle);
-        gate_vect[gv_index]->set_is_variational(false);
-
-        if(set_gate)
-        {
-            curr_ts_ptr->set_gate(qubit, gate_vect[gv_index]);
-            this->new_timeslice();
-        }
-        //  Initialize gate matrix: temp
-        vector<vector<double>> temp;
-        int N = 4;
-        temp.resize(N, vector<double>(2));
-        for(int j=0;j<N;j++){temp[j][0]=0; temp[j][1]=0;}
-
-        temp[0][0] = cos(angle);
-        temp[1][0] = -sin(angle);
-        temp[2][0] = sin(angle);
-        temp[3][0] = cos(angle);
-        matrix_vect.push_back(temp);
-    }
-
+    this->rotation("y", qubit, angle, set_gate);
 }
 
+void VQE::Rz(int qubit, double angle, bool set_gate)
+{
+    this->rotation("z", qubit, angle, set_gate);
+}
 
 void VQE::phase(int qubit, double angle, bool set_gate)
 {
-    string P_name = "p_" + to_string(angle).substr(0,1) + "_" + to_string(angle).substr(2,6);
+    this->rotation("p", qubit, angle, set_gate);
+}
+
+void VQE::rotation(const char rot_axis[], int qubit, double angle, bool set_gate)
+{
+    /// string cleansing
+    string temp_name(rot_axis);
+    for(unsigned int i=0;i<temp_name.length();i++)
+        temp_name[i] = tolower(temp_name[i]);
+    if(temp_name.compare("x") && temp_name.compare("y") && temp_name.compare("z") && temp_name.compare("p"))
+        throw invalid_argument("Invalid Argument: Axis does not exist for as a Rotation gate.\nValid options include X, Y, Z, and P(for phase).");
+
+
+    ///    CALLING FUNCTION FOR NAMING ROTATION GATES *******
+    string gate_name = get_rotation_gate_name(rot_axis, angle);
+
     int gv_index = gate_vect.size();
     int gate_loc = gv_index; // init to invalid index
     for(int i=0;i<gv_index;i++)
     { // search for matching gate: rz then angle of rotation
-        if(P_name.compare(0,10,gate_vect[i]->get_name(),0,10) == 0 && angle == gate_vect[i]->get_angle())
+        if(gate_name.compare(0,10,gate_vect[i]->get_name(),0,10) == 0 && angle == gate_vect[i]->get_angle())
             gate_loc = i;
     }
 
@@ -459,7 +328,7 @@ void VQE::phase(int qubit, double angle, bool set_gate)
         gate_vect.push_back(new Gate);
         gate_vect[gv_index]->set_num_qubits(1);
         gate_vect[gv_index]->set_matrix_index(matrix_vect.size());
-        gate_vect[gv_index]->set_name(P_name);
+        gate_vect[gv_index]->set_name(gate_name);
         gate_vect[gv_index]->set_angle(angle);
         gate_vect[gv_index]->set_is_variational(false);
 
@@ -468,21 +337,93 @@ void VQE::phase(int qubit, double angle, bool set_gate)
             curr_ts_ptr->set_gate(qubit, gate_vect[gv_index]);
             this->new_timeslice();
         }
-
         //  Initialize gate matrix: temp
         vector<vector<double>> temp;
         int N = 4;
         temp.resize(N, vector<double>(2));
-        for(int j=0;j<N;j++){temp[j][0]=0; temp[j][1]=0;}
+        for(int j=0;j<N;j++)
+        {
+            temp[j][0]=0;
+            temp[j][1]=0;
+        }
 
-        temp[0][0] = 1;
-        temp[N-1][0] = cos(angle);
-        temp[N-1][1] = sin(angle);
+        if(rot_axis == "x")
+        {
+            temp[0][0] = cos(angle);
+            temp[1][1] = -sin(angle);
+            temp[2][1] = -sin(angle);
+            temp[3][0] = cos(angle);
+        }
+        else if(rot_axis == "y")
+        {
+            temp[0][0] = cos(angle);
+            temp[1][0] = -sin(angle);
+            temp[2][0] = sin(angle);
+            temp[3][0] = cos(angle);
+        }
+        else if(rot_axis == "z")
+        {
+            temp[0][0] = cos(angle);
+            temp[0][1] = -sin(angle);
+            temp[N-1][0] = cos(angle);
+            temp[N-1][1] = sin(angle);
+        }
+        else // (rot_axis == "phase")
+        {
+            temp[0][0] = 1;
+            temp[N-1][0] = cos(angle);
+            temp[N-1][1] = sin(angle);
+        }
 
         matrix_vect.push_back(temp);
     }
+}
+
+/**
+    Rotation Gate name generator
+    - useful for gates after they were initialized
+*/
+string VQE::get_rotation_gate_name(const char gate[], double angle)
+{
+    /// gate name
+    string gate_name(gate);
+    for(unsigned int i=0;i<gate_name.length();i++)
+        gate_name[i] = tolower(gate_name[i]);
+
+    /// angle
+    int sign;
+    if(angle == 0.0)
+        angle = fabs(angle);
+    if(angle < 0.0)
+        sign = 1;
+    else // (angle >= 0.0)
+        sign = 0;
+
+    // stringstream class check1
+    //string angle_str = to_string(angle);
+    stringstream check1;
+    check1 << angle;
+    vector <string> tokens;
+    string intermediate;
+
+    // Tokenizing w.r.t. space ' '
+    while(getline(check1, intermediate, '.'))
+    {
+        tokens.push_back(intermediate);
+    }
+
+    string full_name = gate_name + "_" + to_string(sign) + "_";
+    full_name = accumulate(begin(tokens), end(tokens), full_name);
+
+    char output_name[full_name.length()];
+    for(int i=0;i<full_name.length();i++)
+        output_name[i] = full_name[i];
+
+    cout << full_name << endl;
+    return full_name;
 
 }
+
 
 
 /** Variational Gate
@@ -1406,12 +1347,12 @@ int VQE::write_vqe_solver()
 void VQE::vqe_case_writer(vector<Gate*> variational_gates, ofstream& solver)
 {
     int vector_size = static_cast<int>(pow(2,num_qubits+1));
-    if(this->variational_angles.size())
+    if(this->variational_angles.size()) // if there are angles
     {
-        for(int i_angles=0;i_angles<this->variational_angles[0].size();i_angles++)
+        for(int i_angles=0;i_angles<variational_gates[0]->get_num_gates();i_angles++) // for every rotation gate
         {
             solver << "        " << 2*i_angles << ": begin" << endl;
-            for(int i_gate=0;i_gate<variational_gates.size();i_gate++)
+            for(int i_gate=0;i_gate<variational_gates.size();i_gate++) // for every variation gate
             {
                 solver << "            " << variational_gates[i_gate]->get_name()[1] << i_gate << "[0:7] <= ";
                 solver << variational_gates[i_gate]->get_variational_gate(i_angles)->get_name() << "[0:7];" << endl;
