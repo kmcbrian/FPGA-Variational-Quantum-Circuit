@@ -402,7 +402,7 @@ string VQE::get_rotation_gate_name(const char gate[], double angle)
     // stringstream class check1
     //string angle_str = to_string(angle);
     stringstream check1;
-    check1 << angle;
+    check1 << abs(angle);
     vector <string> tokens;
     string intermediate;
 
@@ -412,14 +412,20 @@ string VQE::get_rotation_gate_name(const char gate[], double angle)
         tokens.push_back(intermediate);
     }
 
-    string full_name = gate_name + "_" + to_string(sign) + "_";
+    /// remove 'r' from beginning of gate name if it exists
+    string full_name;
+    if(!gate_name.compare(0,1,"r"))
+        full_name = gate_name[1];
+    else
+        full_name = gate_name[0];
+
+    full_name = full_name + "_" + to_string(sign) + "_";
     full_name = accumulate(begin(tokens), end(tokens), full_name);
 
     char output_name[full_name.length()];
     for(int i=0;i<full_name.length();i++)
         output_name[i] = full_name[i];
 
-    cout << full_name << endl;
     return full_name;
 
 }
@@ -439,8 +445,10 @@ void VQE::variational(int qubit, const char gate[], int angle_index)
     if(temp_name.compare("rx") && temp_name.compare("ry") && temp_name.compare("rz"))
         throw invalid_argument("Invalid Argument: Gate does not exist for as a Variational gate.\nValid options include Rx, Ry, Rz.");
     if(angle_index >= variational_angles.size() || angle_index < 0)
-        throw invalid_argument("Invalid Argument: angle_index out of bounds");
-
+    {
+        cout << "\nIndex: " << angle_index << "\nVariational_angles size: " << variational_angles.size() << endl;
+        throw invalid_argument("\nInvalid Argument: VQE::variational() -> angle_index out of bounds");
+    }
     /// check if variational gate exists already
     string gate_name = temp_name + "V_"+ to_string(angle_index);
     int gv_index = this->gate_vect.size();
@@ -486,23 +494,25 @@ void VQE::variational(int qubit, const char gate[], int angle_index)
         gate_vect[gv_index]->set_name(gate_name);
         gate_vect[gv_index]->set_is_variational(true);
 
-        cout << endl;
+
         /// find all corrsponding rotation gates created above
         string loop_name;
+        const char axis = temp_name[1];
         for(int i_angles=0;i_angles<num_angles;i_angles++)
         {
-            loop_name.assign(temp_name + "_" + to_string(this->variational_angles[angle_index][i_angles]).substr(0,1) + "_" + to_string(this->variational_angles[angle_index][i_angles]).substr(2,6));
+            loop_name = this->get_rotation_gate_name(gate, this->variational_angles[angle_index][i_angles]);
+
             for(int i=0;i<gv_index;i++)
             { // search for matching gate: rz then angle of rotation
                 if(loop_name.compare(0,10,this->gate_vect[i]->get_name(),0,10) == 0 && this->variational_angles[angle_index][i_angles] == this->gate_vect[i]->get_angle())
                 {
                         this->gate_vect[gv_index]->set_variational_gate(this->gate_vect[i]);
-                        cout << i << "  "<< this->variational_angles[angle_index][i_angles] << "  " << this->gate_vect[i]->get_angle() << "\n";
+                        //cout << i << "  "<< this->variational_angles[angle_index][i_angles] << "  " << this->gate_vect[i]->get_angle() << "\n";
                 }
             }
             //cout << "  " << this->gate_vect[gv_index]->get_variational_gate(i_angles)->get_name();
         }
-        cout << endl;
+        //cout << endl;
 
         /// assign timeslice pointer to variational gate
         this->curr_ts_ptr->set_gate(qubit, gate_vect[gv_index]);
@@ -1274,6 +1284,7 @@ int VQE::write_vqe_solver()
                     for(int i_gate=0;i_gate<curr_gate->get_num_gates();i_gate++)
                     {
                         temp_gate = curr_gate->get_variational_gate(i_gate);
+
                         if(find(gates_used.begin(),gates_used.end(),temp_gate) == gates_used.end())
                         {
                             gates_used.push_back(temp_gate); // add gates after target have been removed

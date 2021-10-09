@@ -11,8 +11,8 @@ using namespace std;
 
 void run_test();
 
-bool overlap_circuit = true;
-bool jz_diag_circuit = false;
+bool overlap_circuit = false;
+bool jz_diag_circuit = true;
 
 
 int main()
@@ -34,26 +34,32 @@ int main()
 
     /// Filling variational_angles ----------------
     vector<vector<double>> variational_angles;
-    vector<double> gate0(pow(num_angles,2));
-    vector<double> gate1(pow(num_angles,2));
+
+    vector<double> overlap_0(pow(num_angles,2));
+    vector<double> overlap_1(pow(num_angles,2));
+    vector<double> jz_diag_0(num_angles);
+
     for(int i=0;i<num_angles;i++)
     {
+        jz_diag_0[i] = theta[i];
+
         for(int j=0;j<num_angles;j++)
         {
-            gate0[i*num_angles +j] = (theta[i] + theta[j])/2.;
-            gate1[i*num_angles +j] = (theta[i] - theta[j])/2.;
+            overlap_0[i*num_angles +j] = (theta[i] + theta[j])/2.;
+            overlap_1[i*num_angles +j] = (theta[i] - theta[j])/2.;
         }
     }
-    variational_angles.push_back(gate0);
-    variational_angles.push_back(gate1);
 
 
     /// Overlap circuit --------------------------------------------------------
     if(overlap_circuit)
     {
+        variational_angles.push_back(overlap_0);
+        variational_angles.push_back(overlap_1);
+
         test_vqe = new VQE(2);
         test_vqe->set_variational_angles(variational_angles);
-        test_vqe->print_variational_angles();
+        //test_vqe->print_variational_angles();
         test_vqe->H(0);
         test_vqe->variational(1,"Ry",0);
         test_vqe->control(0,1,"X");
@@ -71,8 +77,11 @@ int main()
         /// Jz diag circuit --------------------------------------------------------
     if(jz_diag_circuit)
     {
+        variational_angles.push_back(jz_diag_0);
+
         test_vqe = new VQE(1);
-        //test_vqe->variational(0,"Ry",theta_min,theta_max,3);
+        test_vqe->set_variational_angles(variational_angles);
+        test_vqe->variational(0,"Ry",0);
     }
 
     test_vqe->write_verilog();
