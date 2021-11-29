@@ -21,7 +21,7 @@ void write_output(int psi_f_length, int N, int n_qb){
     // if you can open an ifstream to the file
     // it exists already
     if (f.good()){
-        cout << " Output file already exists" << endl;
+        cout << filename << " file already exists" << endl;
         return;
     }
 

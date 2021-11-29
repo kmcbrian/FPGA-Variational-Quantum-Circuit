@@ -303,8 +303,6 @@ void VQE::rotation(const char rot_axis[], int qubit, double angle, bool set_gate
     if(temp_name.compare("x") && temp_name.compare("y") && temp_name.compare("z") && temp_name.compare("p"))
         throw invalid_argument("Invalid Argument: Axis does not exist for as a Rotation gate.\nValid options include X, Y, Z, and P(for phase).");
 
-
-    ///    CALLING FUNCTION FOR NAMING ROTATION GATES *******
     string gate_name = get_rotation_gate_name(rot_axis, angle);
 
     int gv_index = gate_vect.size();
@@ -802,7 +800,6 @@ void VQE::temp_control(int cont, int targ, const char gate[], double angle)
         }
 
         matrix_vect.push_back(temp);
-        //print_mat(gate_vect[gv_index]);
     }
 }
 
@@ -959,6 +956,7 @@ void VQE::write_circuit(int n_var)
     // it exists already
     if (f.good()){
         cout << filename << " already exists" << endl;
+        cout << "\nRun ./remove_files.sh to remove all generated files." << endl;
         return;
     }
 
@@ -1016,7 +1014,7 @@ void VQE::write_circuit(int n_var)
 			curr_gate = curr_ts_ptr->get_gate(i_qb);
 			if(curr_gate != nullptr)
 			{
-                cout <<  "Gate: " << curr_gate->get_name() << " - " << i_qb << endl;
+                cout <<  "Gate: " << curr_gate->get_name() << " on qubit " << i_qb << endl;
                 gate_qb = curr_gate->get_num_qubits();
                 //strcpy(curr_matrix_name, curr_gate->get_name()); //keep current matrix name to multiply
 
@@ -1307,9 +1305,11 @@ int VQE::write_vqe_solver()
     for(int i=0;i<variational_gates.size();i++)
     {
         solver << "reg [N-1:0] " << variational_gates[i]->get_name()[1] << i << " [0:7];" << endl;
-        n_wavefunctions *= variational_gates[i]->get_num_gates();
+        //n_wavefunctions *= variational_gates[i]->get_num_gates();
     }
-    psi_f_length *= static_cast<int>(pow(2,num_qubits+1)) * n_wavefunctions;
+    psi_f_length *= static_cast<int>(pow(2,num_qubits+1));
+    if(variational_gates.size())
+        psi_f_length *= variational_angles[0].size();
 
     solver << "reg [N-1:0] psi_f_temp [0:" << static_cast<int>(pow(2,num_qubits+1)-1) << "];" << endl;
     solver << "reg [N-1:0] psi_f_reg [0:" << psi_f_length-1 << "];" << endl;
