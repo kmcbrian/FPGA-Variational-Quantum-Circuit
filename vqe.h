@@ -43,6 +43,8 @@ class VQE
         vector<vector<double>> variational_angles; // need setter and getter
 
         void vqe_case_writer(vector<Gate*>,ofstream& solver);
+        void rotation(const char[], int qubit, double angle, bool set_gate=true);
+        string get_rotation_gate_name(const char[], double angle);
 
 
     public:

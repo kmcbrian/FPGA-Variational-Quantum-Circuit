@@ -36,7 +36,10 @@ void dbltoBinary(double num, int binary[], int N)
         }
 
         // Sign bit
-        if(num < 0)
+        double sign = num;
+        if(num >= 0.0)
+            binary[0] = 0;
+        else if(num < 0)
         {binary[0] = 1;}
 }
 void inttoBinary(int num, int binary[], int N)
