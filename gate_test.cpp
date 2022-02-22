@@ -12,9 +12,9 @@ using namespace std;
 void run_test();
 
 bool overlap_circuit   = false;
-bool jz_diag_circuit   = false;
+bool jz_diag_circuit   = true;
 bool jpjm_diag_circuit = false;
-bool jpjm_offdiag_circuit = true;
+bool jpjm_offdiag_circuit = false;
 
 bool test_circuit = false;
 

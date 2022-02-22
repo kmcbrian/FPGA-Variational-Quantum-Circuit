@@ -1,6 +1,6 @@
 module clock_divider(input wire fast_clock, output wire slow_clock);
 
-parameter COUNTER_SIZE  = 23 ; // 28 => 1.25s
+parameter COUNTER_SIZE  = 27  ; // 27 -> 2.684s
 parameter COUNTER_MAX_COUNT = (2 ** COUNTER_SIZE) - 1;
 
 reg [COUNTER_SIZE -1:0] count;
