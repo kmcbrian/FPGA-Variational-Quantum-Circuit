@@ -1,0 +1,2 @@
+Warning (10268): Verilog HDL information at vqe_solver.sv(72): always construct contains both blocking and non-blocking assignments File: /home/kris/Research/VQE_solver/src/hdl/src/hdl/vqe_solver.sv Line: 72
+Warning (10268): Verilog HDL information at output_1qb.sv(30): always construct contains both blocking and non-blocking assignments File: /home/kris/Research/VQE_solver/src/hdl/src/hdl/output_1qb.sv Line: 30
