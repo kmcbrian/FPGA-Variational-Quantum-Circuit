@@ -4,12 +4,10 @@
 
 #include "gate.h"
 #include "timeslice.h"
-#include "vqe.h"
+#include "variational_circuit.h"
 #define PI 3.141592653589793
 
 using namespace std;
-
-void run_test();
 
 // Choose which circuit to run
 bool overlap_circuit  = false; // also used for jz_gcm
@@ -20,7 +18,7 @@ bool jpjm_gcm_circuit = true;
 
 int main()
 {
-    VQE* vc;
+    Variational_Circuit* vc;
 
     /// Filling angle array ----------------------
     double angle_min = 0.0;
@@ -59,7 +57,7 @@ int main()
         variational_angles.push_back(gcm_angles_0);
         variational_angles.push_back(gcm_angles_1);
 
-        vc = new VQE(2);
+        vc = new Variational_Circuit(2);
 	
 	// put variational angles in scope of member functions
         vc->set_variational_angles(variational_angles);
@@ -76,7 +74,7 @@ int main()
     {
         variational_angles.push_back(theta);
 
-        vc = new VQE(1);
+        vc = new Variational_Circuit(1);
         vc->set_variational_angles(variational_angles);
         vc->variational(0,"Ry",0);
     }
@@ -86,7 +84,7 @@ int main()
     {
         variational_angles.push_back(theta);
 
-        vc = new VQE(2);
+        vc = new Variational_Circuit(2);
         vc->set_variational_angles(variational_angles);
 
         vc->variational(0,"Ry",0);
@@ -101,7 +99,7 @@ int main()
         variational_angles.push_back(gcm_angles_0);
         variational_angles.push_back(gcm_angles_1);
 
-        vc = new VQE(3);
+        vc = new Variational_Circuit(3);
         vc->set_variational_angles(variational_angles);
 
         vc->H(0);

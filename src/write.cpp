@@ -19,19 +19,16 @@ void write_matmul(int num_qubits, int N){
 
 	// check if file already exists
         ifstream f(filename);
-        // if you can open an ifstream to the file
-        // it exists already
         if (f.good()){
-            cout << "Matmul already exists" << endl;
             return;
         }
 
-    string local_file = "matmul_" + to_string(num_qubits) + "qb.sv";
-    // add filename to file for easy deletion
-    ofstream generate_file;
-    generate_file.open("hdl/generated_files.txt", ofstream::app);
-    generate_file << local_file << endl;
-    generate_file.close();
+	string local_file = "matmul_" + to_string(num_qubits) + "qb.sv";
+	// add filename to file for easy deletion
+	ofstream generate_file;
+	generate_file.open("hdl/generated_files.txt", ofstream::app);
+	generate_file << local_file << endl;
+	generate_file.close();
 
 	ofstream verilog;
 	verilog.open(filename);
@@ -147,41 +144,38 @@ void write_tensor_product(int num_qb1, int num_qb2, int N){
 // int num_qb2: number of qubits of 2nd matrix
 // int N:       bit length of the numbers being multiplied
 
-        const int D1 = pow(2,num_qb1);
+	const int D1 = pow(2,num_qb1);
 	const int D2 = pow(2,num_qb2);
-    string filename = "hdl/tensorproduct_" + to_string(num_qb1) + to_string(num_qb2) + "qb.sv";
-    // check if file already exists
-    ifstream f(filename);
-    // if you can open an ifstream to the file
-    // it exists already
-    if (f.good()){
-        cout << "Tensorproduct already exists" << endl;
-        return;
-    }
+	string filename = "hdl/tensorproduct_" + to_string(num_qb1) + to_string(num_qb2) + "qb.sv";
+	// check if file already exists
+	ifstream f(filename);
+	if (f.good()){
+		return;
+	}
 
-    string local_file = "tensorproduct_" + to_string(num_qb1) + to_string(num_qb2) + "qb.sv";
-    // add filename to file for easy deletion
-    ofstream generate_file;
-    generate_file.open("hdl/generated_files.txt", ofstream::app);
-    generate_file << local_file << endl;
-    generate_file.close();
+	string local_file = "tensorproduct_" + to_string(num_qb1) + to_string(num_qb2) + "qb.sv";
+	// add filename to file for easy deletion
+	ofstream generate_file;
+	generate_file.open("hdl/generated_files.txt", ofstream::app);
+	generate_file << local_file << endl;
+	generate_file.close();
 
-    ofstream verilog;
-    verilog.open(filename);
-    verilog << "// tensor product module generated using c++" << endl;
-    verilog << "// takes kronecker product of 2 matrices of arbitrary size to" << endl;
-    verilog << "// output a  matrix" << endl;
+	ofstream verilog;
+	verilog.open(filename);
+	verilog << "// tensor product module generated using c++" << endl;
+	verilog << "// takes kronecker product of 2 matrices of arbitrary size to" << endl;
+	verilog << "// output a  matrix" << endl;
 
-    // module heading
-    verilog << "module tensorproduct_" << num_qb1 << num_qb2 << "qb #(" << endl;
-    verilog << "parameter N = " << N << ","  << endl;
+	// module heading
+	verilog << "module tensorproduct_" << num_qb1 << num_qb2 << "qb #(" << endl;
+	verilog << "parameter N = " << N << ","  << endl;
 	verilog << "parameter D1 = " << D1 << ","  << endl;
-    verilog << "parameter D2 = " << D2 << "\n)\n(\n"  << endl;
+	verilog << "parameter D2 = " << D2 << "\n)\n(\n"  << endl;
 
-    // module input/outputs
-    verilog << "input [N-1:0] mat_1 [0:D1**2 *2 -1],"  << endl;
-    verilog << "input [N-1:0] mat_2 [0:D2**2 *2 -1],"  << endl;
-    verilog << "output [N-1:0] o_mat [0:2*(D1**2)*(D2**2) -1]"  << endl;
+	// module input/outputs
+	verilog << "input [N-1:0] mat_1 [0:D1**2 *2 -1],"  << endl;
+	verilog << "input [N-1:0] mat_2 [0:D2**2 *2 -1],"  << endl;
+	verilog << "output [N-1:0] o_mat [0:2*(D1**2)*(D2**2) -1]"  << endl;
 	verilog << ");\n\n";
 
 	verilog << "wire ovr[0:(D1**2 * D2**2) -1];\n" << endl;
@@ -219,46 +213,42 @@ void write_vector_product(int num_qb1, int num_qb2, int N){
 // int num_qb2: number of qubits of 2nd vector
 // int N:       bit lenght of the numbers being multiplied
 
-
-    const int D1 = pow(2,num_qb1);
+	const int D1 = pow(2,num_qb1);
 	const int D2 = pow(2,num_qb2);
-    string filename = "hdl/vectorproduct_" + to_string(num_qb1) + to_string(num_qb2) + "qb.sv";
+	string filename = "hdl/vectorproduct_" + to_string(num_qb1) + to_string(num_qb2) + "qb.sv";
 
 	// check if file already exists
 	ifstream f(filename);
-	// if you can open an ifstream to the file
-	// it exists already
 	if (f.good()){
-		cout << "Vector_product already exists" << endl;
 		return;
 	}
 
-    string local_file = "vectorproduct_" + to_string(num_qb1) + to_string(num_qb2) + "qb.sv";
-    // add filename to file for easy deletion
-    ofstream generate_file;
-    generate_file.open("hdl/generated_files.txt", ofstream::app);
-    generate_file << local_file << endl;
-    generate_file.close();
+	string local_file = "vectorproduct_" + to_string(num_qb1) + to_string(num_qb2) + "qb.sv";
+	// add filename to file for easy deletion
+	ofstream generate_file;
+	generate_file.open("hdl/generated_files.txt", ofstream::app);
+	generate_file << local_file << endl;
+	generate_file.close();
 
-    ofstream verilog;
-    verilog.open(filename);
-    verilog << "// tensor product module generated using c++" << endl;
-    verilog << "// takes tensor product of 2 vectors of arbitrary size to" << endl;
-    verilog << "// output a vector of size D1*D2" << endl;
+	ofstream verilog;
+	verilog.open(filename);
+	verilog << "// tensor product module generated using c++" << endl;
+	verilog << "// takes tensor product of 2 vectors of arbitrary size to" << endl;
+	verilog << "// output a vector of size D1*D2" << endl;
 
-    // module heading
-    verilog << "module vectorproduct_" << num_qb1 << num_qb2 << "qb #(" << endl;
-    verilog << "parameter N = " << N << ","  << endl;
-    verilog << "parameter D1 = " << D1 << ","  << endl;
-    verilog << "parameter D2 = " << D2 << "\n)\n(\n"  << endl;
+	// module heading
+	verilog << "module vectorproduct_" << num_qb1 << num_qb2 << "qb #(" << endl;
+	verilog << "parameter N = " << N << ","  << endl;
+	verilog << "parameter D1 = " << D1 << ","  << endl;
+	verilog << "parameter D2 = " << D2 << "\n)\n(\n"  << endl;
 
-    // module input/outputs
-    verilog << "input [N-1:0] vec_1 [0:D1*2 -1],"  << endl;
-    verilog << "input [N-1:0] vec_2 [0:D2*2 -1],"  << endl;
-    verilog << "output [N-1:0] o_vec [0:2*D1*D2 -1]"  << endl;
-    verilog << ");\n\n";
+	// module input/outputs
+	verilog << "input [N-1:0] vec_1 [0:D1*2 -1],"  << endl;
+	verilog << "input [N-1:0] vec_2 [0:D2*2 -1],"  << endl;
+	verilog << "output [N-1:0] o_vec [0:2*D1*D2 -1]"  << endl;
+	verilog << ");\n\n";
 
-    verilog << "wire ovr[0:(D1**2 * D2**2) -1];\n" << endl;
+	verilog << "wire ovr[0:(D1**2 * D2**2) -1];\n" << endl;
 
 
 	// tensor product
@@ -286,26 +276,22 @@ void write_output(int psi_f_length, int N, int n_qb){
 // int n_qb:   number of qubits in circuit
 // int N:      bit length of numbers. Multiple of 8 required
 
-	//const int NUM_VAL = 2 * pow(2, n_qb); //number of real numbers
 	const int NUM_BYTES = static_cast<int>(N/8);
-    const int NUM_OUT = psi_f_length * NUM_BYTES; //number of output cycles
+	const int NUM_OUT = psi_f_length * NUM_BYTES; //number of output cycles
 	string filename = "hdl/output_" + to_string(n_qb) + "qb.sv";
 
 	// check if file already exists
-    ifstream f(filename);
-    // if you can open an ifstream to the file
-    // it exists already
-    if (f.good()){
-        cout << filename << " file already exists" << endl;
-        return;
-    }
+	ifstream f(filename);
+	if (f.good()){
+		return;
+	}
 
-    // add filename to file for easy deletion
-    string local_file = "output_" + to_string(n_qb) + "qb.sv";
-    ofstream generate_file;
-    generate_file.open("hdl/generated_files.txt", ofstream::app);
-    generate_file << local_file << endl;
-    generate_file.close();
+	// add filename to file for easy deletion
+	string local_file = "output_" + to_string(n_qb) + "qb.sv";
+	ofstream generate_file;
+	generate_file.open("hdl/generated_files.txt", ofstream::app);
+	generate_file << local_file << endl;
+	generate_file.close();
 
 	ofstream verilog;
         verilog.open(filename);
@@ -318,14 +304,14 @@ void write_output(int psi_f_length, int N, int n_qb){
 
 	// module input/outputs
 	verilog << "input [N-1:0] psi_f [0:" << psi_f_length-1 << "]," << endl;
-    verilog << "input wire i_clock,"    << endl;
-    verilog << "input wire listener_flag," << endl;
+	verilog << "input wire i_clock,"    << endl;
+	verilog << "input wire listener_flag," << endl;
 	verilog << "output wire[7:0] out,"  << endl;
-    verilog << "output wire parity\n);" << endl << endl;
+	verilog << "output wire parity\n);" << endl << endl;
 
 	// variable initialization
 	verilog << "// used for iterating through output" << endl;
-    verilog << "integer n_num = " << NUM_OUT << ";" << endl;
+	verilog << "integer n_num = " << NUM_OUT << ";" << endl;
 	verilog << "integer i_num = 0;" << endl;
 
 	verilog << "reg [7:0] out_reg; // for assigning numbers in always block" << endl;
@@ -348,7 +334,7 @@ void write_output(int psi_f_length, int N, int n_qb){
 	verilog << "begin" << endl;
 	verilog << "    source_flag_reg <= 1'b1;" << endl;
 	verilog << "end" << endl;
-*/
+        */
 	// second always block, assigning pins at arduinos signal
 	verilog << "\n\n// transfer data to arduino" << endl;
         verilog << "always @ (posedge listener_flag)" << endl;
@@ -365,7 +351,7 @@ void write_output(int psi_f_length, int N, int n_qb){
 	        verilog << "       end" << endl;
 	    }
 	}
-    verilog << "    default: out_reg[7:0] <= 8'b00000000;" << endl;
+	verilog << "    default: out_reg[7:0] <= 8'b00000000;" << endl;
 	verilog << "    endcase" << endl;
 	verilog << "    i_num = i_num + 1;" << endl;
 

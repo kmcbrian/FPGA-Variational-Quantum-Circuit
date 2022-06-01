@@ -1,5 +1,5 @@
-#ifndef VQE_H
-#define VQE_H
+#ifndef VARIATIONAL_CIRCUIT_H
+#define VARIATIONAL_CIRCUIT_H
 
 #include "gate.h"
 #include "timeslice.h"
@@ -8,7 +8,7 @@
 
 using namespace std;
 
-class VQE
+class Variational_Circuit
 {
     private:
         int num_qubits;
@@ -48,9 +48,9 @@ class VQE
 
 
     public:
-        VQE(){};
-        VQE(const int);
-        ~VQE();
+        Variational_Circuit(){};
+        Variational_Circuit(const int);
+        ~Variational_Circuit();
 
         Timeslice* get_head_ptr();
         Timeslice* get_curr_ptr();

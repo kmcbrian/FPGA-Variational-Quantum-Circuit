@@ -1,5 +1,5 @@
-#ifndef VQE_CPP
-#define VQE_CPP
+#ifndef VARIATIONAL_CIRCUIT_CPP
+#define VARIATIONAL_CIRCUIT_CPP
 
 #include <iostream>
 #include <algorithm>
@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include <math.h>
 #include <numeric> // for accumulate
-#include "vqe.h"
+#include "variational_circuit.h"
 #include "binary.h"
 
 #define PI 3.141592653589793
@@ -21,7 +21,7 @@ using namespace std;
     input:
         const int - number of qubits in circuit
 */
-VQE::VQE(const int n_qb)
+Variational_Circuit::Variational_Circuit(const int n_qb)
 {
 	num_qubits = n_qb;
 	head_ts_ptr = new Timeslice(n_qb);
@@ -114,7 +114,7 @@ VQE::VQE(const int n_qb)
 }
 
 /** Destructor **/
-VQE::~VQE()
+Variational_Circuit::~Variational_Circuit()
 {
 	// delete last object and all ptrs of the class
 	Timeslice* temp;
@@ -157,7 +157,7 @@ VQE::~VQE()
         - new object in the linked-list structure
           holding information about circuit
 */
-void VQE::new_timeslice()
+void Variational_Circuit::new_timeslice()
 {
     // initialize new timeslice
     Timeslice *next_timeslice;
@@ -173,10 +173,10 @@ void VQE::new_timeslice()
 
 /** Timeslice attribute getter functions
 **/
-Timeslice* VQE::get_head_ptr()
+Timeslice* Variational_Circuit::get_head_ptr()
 {   return this->head_ts_ptr;}
 
-Timeslice* VQE::get_curr_ptr()
+Timeslice* Variational_Circuit::get_curr_ptr()
 {   return this->curr_ts_ptr;}
 
 
@@ -184,7 +184,7 @@ Timeslice* VQE::get_curr_ptr()
 /*** void Initial state to file()
         - writes the |0> vector in binary to a file
 */
-void VQE::init_state_to_file(int N){
+void Variational_Circuit::init_state_to_file(int N){
     string local_file = "vector_qb.dat";
     string filename = "hdl/vector_qb.dat";
 
@@ -228,7 +228,7 @@ void VQE::init_state_to_file(int N){
         - returns the number of qubits in the same
           vector space as the specified qubit
 **/
-int VQE::get_qb_dim(int qb)
+int Variational_Circuit::get_qb_dim(int qb)
 {
         int dim = 0;
         for(int i=0; i<num_qubits; i++)
@@ -243,28 +243,28 @@ int VQE::get_qb_dim(int qb)
 /** Constant Single Qubit gates
         -I, X, Y, Z, H
 */
-void VQE::I(int qubit)
+void Variational_Circuit::I(int qubit)
 {
     curr_ts_ptr->set_gate(qubit, identity);
     this->new_timeslice();
 }
 
-void VQE::X(int qubit)
+void Variational_Circuit::X(int qubit)
 {
     curr_ts_ptr->set_gate(qubit, pauli_X);
     this->new_timeslice();
 }
-void VQE::Y(int qubit)
+void Variational_Circuit::Y(int qubit)
 {
     curr_ts_ptr->set_gate(qubit, pauli_Y);
     this->new_timeslice();
 }
-void VQE::Z(int qubit)
+void Variational_Circuit::Z(int qubit)
 {
     curr_ts_ptr->set_gate(qubit, pauli_Z);
     this->new_timeslice();
 }
-void VQE::H(int qubit)
+void Variational_Circuit::H(int qubit)
 {
     curr_ts_ptr->set_gate(qubit, hadamard);
     this->new_timeslice();
@@ -275,27 +275,27 @@ void VQE::H(int qubit)
         -Rz, Rx, Ry, Phase
 */
 
-void VQE::Rx(int qubit, double angle, bool set_gate)
+void Variational_Circuit::Rx(int qubit, double angle, bool set_gate)
 {
     this->rotation("x", qubit, angle, set_gate);
 }
 
-void VQE::Ry(int qubit, double angle, bool set_gate)
+void Variational_Circuit::Ry(int qubit, double angle, bool set_gate)
 {
     this->rotation("y", qubit, angle, set_gate);
 }
 
-void VQE::Rz(int qubit, double angle, bool set_gate)
+void Variational_Circuit::Rz(int qubit, double angle, bool set_gate)
 {
     this->rotation("z", qubit, angle, set_gate);
 }
 
-void VQE::phase(int qubit, double angle, bool set_gate)
+void Variational_Circuit::phase(int qubit, double angle, bool set_gate)
 {
     this->rotation("p", qubit, angle, set_gate);
 }
 
-void VQE::rotation(const char rot_axis[], int qubit, double angle, bool set_gate)
+void Variational_Circuit::rotation(const char rot_axis[], int qubit, double angle, bool set_gate)
 {
     /// string cleansing
     string temp_name(rot_axis);
@@ -382,7 +382,7 @@ void VQE::rotation(const char rot_axis[], int qubit, double angle, bool set_gate
     Rotation Gate name generator
     - useful for gates after they were initialized
 */
-string VQE::get_rotation_gate_name(const char gate[], double angle)
+string Variational_Circuit::get_rotation_gate_name(const char gate[], double angle)
 {
     /// gate name
     string gate_name(gate);
@@ -433,7 +433,7 @@ string VQE::get_rotation_gate_name(const char gate[], double angle)
 
 /** Variational Gate
 */
-void VQE::variational(int qubit, const char gate[], int angle_index)
+void Variational_Circuit::variational(int qubit, const char gate[], int angle_index)
 {
     /// string cleansing
     string temp_name(gate);
@@ -520,7 +520,7 @@ void VQE::variational(int qubit, const char gate[], int angle_index)
 }
 
 
-void VQE::set_variational_angles(vector<vector<double>> _variational_angles)
+void Variational_Circuit::set_variational_angles(vector<vector<double>> _variational_angles)
 {
     for(int i=0;i<_variational_angles.size()-1;i++)
     {
@@ -530,7 +530,7 @@ void VQE::set_variational_angles(vector<vector<double>> _variational_angles)
     this->variational_angles = _variational_angles;
 }
 
-void VQE::print_variational_angles()
+void Variational_Circuit::print_variational_angles()
 {
     cout << endl << "Angles:" << endl;
     for(int i=0;i<variational_angles.size();i++)
@@ -546,7 +546,7 @@ void VQE::print_variational_angles()
 /**  Two qubit gates
         -control, swap
 */
-void VQE::control(int cont, int targ, const char gate[])
+void Variational_Circuit::control(int cont, int targ, const char gate[])
 {
     int matrix_index=0;
     double angle = 0.;
@@ -636,13 +636,12 @@ void VQE::control(int cont, int targ, const char gate[])
         }
 
         matrix_vect.push_back(temp);
-        //print_mat(gate_vect[gv_index]);
     }
 }
 
 
 
-void VQE::temp_control(int cont, int targ, const char gate[], double angle)
+void Variational_Circuit::temp_control(int cont, int targ, const char gate[], double angle)
 {
     int matrix_index=0;
     string gate_name(gate);
@@ -807,7 +806,7 @@ void VQE::temp_control(int cont, int targ, const char gate[], double angle)
 
 
 
-void VQE::swap_gate(int qb1, int qb2)
+void Variational_Circuit::swap_gate(int qb1, int qb2)
 {
     double angle = 0.;
     int low_qb, high_qb;
@@ -888,7 +887,7 @@ void VQE::swap_gate(int qb1, int qb2)
     }
 }
 
-void VQE::matrix_to_file(Gate* curr_gate, int N){
+void Variational_Circuit::matrix_to_file(Gate* curr_gate, int N){
     // convert the matrix to sign-magnitude binary and print to file to be read by HDL
     const char extension[] = ".dat";
     const char folder[] = "hdl/";
@@ -901,7 +900,6 @@ void VQE::matrix_to_file(Gate* curr_gate, int N){
     // check if file already exists for matrix
     ifstream f(filename);
         if (f.good()){
-                cout <<  filename << " already exists" << endl;
                 delete[] filename;
                 return;
         }
@@ -945,19 +943,20 @@ void VQE::matrix_to_file(Gate* curr_gate, int N){
 
     vector_file.close();
     delete[] filename;
+    delete[] local_file;
 }
 
 
 
 
 
-void VQE::write_verilog()
+void Variational_Circuit::write_verilog()
 {
     int n_var = write_vqe_solver();
     write_circuit(n_var);
 }
 
-void VQE::write_circuit(int n_var)
+void Variational_Circuit::write_circuit(int n_var)
 {
     string filename = "hdl/variational_circuit" + to_string(n_var) +".sv";
     // check if file already exists
@@ -1021,112 +1020,110 @@ void VQE::write_circuit(int n_var)
     while(curr_ts_ptr != nullptr)
     {
         for(int i_qb=0;i_qb < this->num_qubits;i_qb++)
+	{
+		curr_gate = curr_ts_ptr->get_gate(i_qb);
+		if(curr_gate != nullptr)
 		{
-			curr_gate = curr_ts_ptr->get_gate(i_qb);
-			if(curr_gate != nullptr)
-			{
-                cout <<  "Gate: " << curr_gate->get_name() << " on qubit " << i_qb << endl;
-                gate_qb = curr_gate->get_num_qubits();
-                //strcpy(curr_matrix_name, curr_gate->get_name()); //keep current matrix name to multiply
+        		gate_qb = curr_gate->get_num_qubits();
 
-                for(int reset=0;reset<num_qubits;reset++){
-                    gate_space[reset] = 0;
-                }
+			for(int reset=0;reset<num_qubits;reset++){
+			    gate_space[reset] = 0;
+			}
 
-                // determine vector space gate acts on
-                if(gate_qb == 1){
-                    gate_space[i_qb] =1;
-                    min_qb = i_qb;
-                    max_qb = i_qb+1;
-                }
-                else if(gate_qb == 2){
-                    target_qb = -1;
-                    for(int ii_qb=0; ii_qb<num_qubits; ii_qb++){ // find target to control gate
-                        if(curr_ts_ptr->get_gate(ii_qb) != nullptr && strcmp(curr_ts_ptr->get_gate(ii_qb)->get_name(),"target") == 0){
-                            target_qb = ii_qb;
-                        }
-                    }
-                    if(target_qb != -1){ // if target gate was found
-                        for(int jj=min(i_qb,target_qb);jj<max(i_qb,target_qb)+1;jj++){
-                            gate_space[jj] =1;
-                        }
-                    }
-                    else{
-                        cout << "\nTarget gate not found" << endl;
-                    }
-                    min_qb = min(i_qb, target_qb);
-                    max_qb = max(i_qb, target_qb)+1;
-                }
-                else{ // if target gate
-                    break;
-                }
-                curr_matrix_dim = max_qb - min_qb;
+			// determine vector space gate acts on
+			if(gate_qb == 1){
+			    gate_space[i_qb] =1;
+			    min_qb = i_qb;
+			    max_qb = i_qb+1;
+			}
+			else if(gate_qb == 2){
+				target_qb = -1;
+				for(int ii_qb=0; ii_qb<num_qubits; ii_qb++){ // find target to control gate
+				if(curr_ts_ptr->get_gate(ii_qb) != nullptr && strcmp(curr_ts_ptr->get_gate(ii_qb)->get_name(),"target") == 0){
+				    target_qb = ii_qb;
+				}
+				}
+				if(target_qb != -1){ // if target gate was found
+					for(int jj=min(i_qb,target_qb);jj<max(i_qb,target_qb)+1;jj++){
+					    gate_space[jj] =1;
+					}
+				}
+				else{
+					cout << "\nTarget gate not found" << endl;
+				}
+				min_qb = min(i_qb, target_qb);
+				max_qb = max(i_qb, target_qb)+1;
+			}
+			else{ // if target gate
+			    break;
+			}
+		        curr_matrix_dim = max_qb - min_qb;
 
-                if(curr_gate->get_is_variational())
-                {
-                    sprintf(curr_matrix_name, "v_matrix%d", i_var_gate);
-                    i_var_gate++;
-                }
-                else
-                {
-                    strcpy(curr_matrix_name, curr_gate->get_name()); //keep current matrix name to multiply
+		        if(curr_gate->get_is_variational())
+		        {
+		            sprintf(curr_matrix_name, "v_matrix%d", i_var_gate);
+		            i_var_gate++;
+		        }
+		        else
+		        {
+		            strcpy(curr_matrix_name, curr_gate->get_name()); //keep current matrix name to multiply
 
-                    if(find(gates_used.begin(),gates_used.end(),curr_gate) == gates_used.end())
-                    {
-                        gates_used.push_back(curr_gate); // add gates after target have been removed
-                        circuit << "reg [N-1:0] " << curr_matrix_name << " [0:" << pow(2, 2*(curr_matrix_dim)+1 )-1 << "];" << endl;
-                    }
+		            if(find(gates_used.begin(),gates_used.end(),curr_gate) == gates_used.end())
+		            {
+		                gates_used.push_back(curr_gate); // add gates after target have been removed
+		                circuit << "reg [N-1:0] " << curr_matrix_name << " [0:" << pow(2, 2*(curr_matrix_dim)+1 )-1 << "];" << endl;
+		            }
 
-                }
-                // Determine if Tensor_product or Vector product is necessary
-                for(int i=min_qb;i<max_qb;i++){
-                    for(int j=0;j<num_qubits;j++){
-                        diff_space[j] = multiplied_qbs[i][j] - gate_space[j];
+		        }
+                	// Determine if Tensor_product or Vector product is necessary
+			for(int i=min_qb;i<max_qb;i++){
+				for(int j=0;j<num_qubits;j++){
+					diff_space[j] = multiplied_qbs[i][j] - gate_space[j];
 
-                        if(diff_space[j] == 1){ // if qubit space bigger than gate space
-                            // output tensor product module
-                            if(find(gates_used.begin(),gates_used.end(),identity) == gates_used.end()){
-                                gates_used.push_back(identity);
-                                circuit << "reg [N-1:0] identity [0:7];" << endl;
-                            }
-                            if(i_qb<j){ //expand to qubit space below gate
-                                write_tensor_product(curr_matrix_dim, 1, N);
-                                circuit << "wire [N-1:0] o_mat" << psi_index << " [0:" << pow(2, 2*(curr_matrix_dim+1)+1 )-1 << "];" << endl;
-                                circuit << "tensorproduct_" << curr_matrix_dim << "1qb tp" << i_module << "(" << endl;
-                                circuit << "    .mat_1(" << curr_matrix_name << ")," << endl;
-                                circuit << "    .mat_2(" << identity->get_name() << ")," << endl;
-                                circuit << "    .o_mat(o_mat" <<psi_index << ")\n);\n" << endl;
+					if(diff_space[j] == 1){	 // if qubit space bigger than gate space
+						// output tensor product module
+						if(find(gates_used.begin(),gates_used.end(),identity) == gates_used.end()){
+							gates_used.push_back(identity);
+							circuit << "reg [N-1:0] identity [0:7];" << endl;
+						}
+						if(i_qb<j){ //expand to qubit space below gate
+							write_tensor_product(curr_matrix_dim, 1, N);
+							circuit << "wire [N-1:0] o_mat" << psi_index << " [0:" << pow(2, 2*(curr_matrix_dim+1)+1 )-1 << "];" << endl;
+							circuit << "tensorproduct_" << curr_matrix_dim << "1qb tp" << i_module << "(" << endl;
+							circuit << "    .mat_1(" << curr_matrix_name << ")," << endl;
+							circuit << "    .mat_2(" << identity->get_name() << ")," << endl;
+							circuit << "    .o_mat(o_mat" <<psi_index << ")\n);\n" << endl;
 
-                                sprintf(curr_matrix_name, "o_mat%d", psi_index);
-                                curr_matrix_dim++;
-                                psi_index++;
-                                i_module++;
-                                gate_space[j] = 1; // gate space grows in tensor products
-                                //break;
-                            }
-                            else if(i_qb>j){ // expand to qubit space above gate
-                                write_tensor_product(1, curr_matrix_dim, N);
-                                circuit << "wire [N-1:0] o_mat" << psi_index << " [0:" << pow(2, 2*(curr_matrix_dim+1)+1 )-1 << "];" << endl;
-                                circuit << "tensorproduct_1" << curr_matrix_dim << "qb tp" << i_module << "(" << endl;
-                                circuit << "    .mat_1(" << identity->get_name() << ")," << endl;
-                                circuit << "    .mat_2(" << curr_matrix_name << ")," << endl;
-                                circuit << "    .o_mat(o_mat" <<psi_index << ")\n);\n" << endl;
+							sprintf(curr_matrix_name, "o_mat%d", psi_index);
+							curr_matrix_dim++;
+							psi_index++;
+							i_module++;
+							gate_space[j] = 1; // gate space grows in tensor products
+							//break;
+						}
+						else if(i_qb>j){ // expand to qubit space above gate
+							write_tensor_product(1, curr_matrix_dim, N);
+							circuit << "wire [N-1:0] o_mat" << psi_index << " [0:" << pow(2, 2*(curr_matrix_dim+1)+1 )-1 << "];" << endl;
+							circuit << "tensorproduct_1" << curr_matrix_dim << "qb tp" << i_module << "(" << endl;
+							circuit << "    .mat_1(" << identity->get_name() << ")," << endl;
+							circuit << "    .mat_2(" << curr_matrix_name << ")," << endl;
+							circuit << "    .o_mat(o_mat" <<psi_index << ")\n);\n" << endl;
 
-                                sprintf(curr_matrix_name, "o_mat%d", psi_index);
-                                curr_matrix_dim++;
-                                psi_index++;
-                                i_module++;
-                                gate_space[j] = 1; // gate space grows in tensor products
+							sprintf(curr_matrix_name, "o_mat%d", psi_index);
+							curr_matrix_dim++;
+							psi_index++;
+							i_module++;
+							gate_space[j] = 1; // gate space grows in tensor products
 
-                                //break;
-                            }
-                            else{
-                                cout << "\n\nsomething is not quite right in write_circuit\n\n";
-                            }
-                        }
-                        else if(diff_space[j] == -1){
-                            curr_qb_space = get_qb_dim(i_qb);
-                            next_qb_space = get_qb_dim(j);
+							//break;
+						}
+						else{
+							cout << "\n\nsomething is not quite right in write_circuit\n\n";
+						}
+                			}
+                        		else if(diff_space[j] == -1){
+						curr_qb_space = get_qb_dim(i_qb);
+						next_qb_space = get_qb_dim(j);
                             if(i_qb<j){ //expand to qubit space below gate
                                 write_vector_product(curr_qb_space, next_qb_space, N);
                                 circuit << "wire [N-1:0] psi_" << psi_index << " [0:" << pow(2, curr_qb_space+next_qb_space+1 )-1 << "];" << endl;
@@ -1139,25 +1136,20 @@ void VQE::write_circuit(int n_var)
                                 i_temp = last_index[i_qb];
                                 j_temp = last_index[j];
                                 for(int i_l=0;i_l<num_qubits;i_l++){
-                                    //cout << last_index[i_l];
                                     if(last_index[i_l] == i_temp || last_index[i_l] == j_temp){
                                         last_index[i_l] = psi_index;
                                     }
                                 }
-                                cout << "\n";
                                 //update multiplied_qbs from last_index
                                 for(int i_mq=0;i_mq<num_qubits;i_mq++){
                                     for(int j_mq=0;j_mq<num_qubits;j_mq++){
                                         if(last_index[i_mq]==last_index[j_mq]){
                                             multiplied_qbs[i_mq][j_mq] = 1;
                                         }
-                                        //cout << multiplied_qbs[i_mq][j_mq];
                                     }
                                 }
-                                //cout << "\n";
                                 psi_index++;
                                 i_module++;
-                                //break;
                             }
                             else if(i_qb>j){ //expand to qubit space below gate
                                 write_vector_product(next_qb_space, curr_qb_space, N);
@@ -1203,15 +1195,12 @@ void VQE::write_circuit(int n_var)
                 circuit << "    .o_vector(psi_" << psi_index << ")\n);\n" << endl;
 
                 // update last_index
-                //cout << "i_qb: " << i_qb << " last_index: ";
                 i_temp = last_index[i_qb];
                 for(int i_l=0;i_l<num_qubits;i_l++){
-                    //cout << last_index[i_l];
                     if(last_index[i_l] == i_temp){
                         last_index[i_l] = psi_index;
                     }
                 }
-                cout << endl;
                 i_module++;
                 psi_index++;
 			}
@@ -1238,7 +1227,7 @@ void VQE::write_circuit(int n_var)
 
 
 //returns number of variational gates
-int VQE::write_vqe_solver()
+int Variational_Circuit::write_vqe_solver()
 {
     ofstream solver;
     string filename = "hdl/vqe_solver.sv";
@@ -1367,7 +1356,7 @@ int VQE::write_vqe_solver()
 }
 
 
-void VQE::vqe_case_writer(vector<Gate*> variational_gates, ofstream& solver)
+void Variational_Circuit::vqe_case_writer(vector<Gate*> variational_gates, ofstream& solver)
 {
     int vector_size = static_cast<int>(pow(2,num_qubits+1));
     if(this->variational_angles.size()) // if there are angles
@@ -1403,4 +1392,4 @@ void VQE::vqe_case_writer(vector<Gate*> variational_gates, ofstream& solver)
 }
 
 
-#endif // VQE_CPP
+#endif

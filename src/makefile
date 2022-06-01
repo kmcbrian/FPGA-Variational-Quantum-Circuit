@@ -2,7 +2,7 @@
 
 CC = g++
 CFLAGS = -Wall -g
-OBJFILES = main.o vqe.o timeslice.o gate.o binary.o write.o
+OBJFILES = main.o variational_circuit.o timeslice.o gate.o binary.o write.o
 TARGET = main 
 
 all: $(TARGET)
