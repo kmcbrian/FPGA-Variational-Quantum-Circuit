@@ -16,7 +16,7 @@ int main()
     /// Filling angle array -----------------------------------
     double angle_min = 0.0;
     double angle_max = 2*PI;
-    int num_angles = 12;
+    int num_angles = 6;
 
     double step = (angle_max - angle_min) / (num_angles-1);
     double theta[num_angles];
