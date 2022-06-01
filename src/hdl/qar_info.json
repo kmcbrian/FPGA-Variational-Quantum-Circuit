@@ -1,7 +1,0 @@
-{
-	"common_dir" : "/home/kris/Research/VQE_solver/",
-	"acds_version" : "Version 20.1.0",
-	"platform" : "linux",
-	"os" : "Ubuntu 18.04.6",
-	"qpf" : "vqe_solver.qpf"
-}
