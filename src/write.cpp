@@ -237,7 +237,7 @@ void write_vector_product(int num_qb1, int num_qb2, int N){
     // add filename to file for easy deletion
     ofstream generate_file;
     generate_file.open("hdl/generated_files.txt", ofstream::app);
-    generate_file << filename << endl;
+    generate_file << local_file << endl;
     generate_file.close();
 
     ofstream verilog;
